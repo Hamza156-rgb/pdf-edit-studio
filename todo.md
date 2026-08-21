@@ -33,3 +33,5 @@
 - [x] Publish the staged-file import repair and verify the public upload-to-editor path no longer reloads the same file.
 - [x] Add regression coverage ensuring staged PDF imports initialize only once despite editor-state updates.
 - [x] Fix the public upload lifecycle so “Reading your PDF…” always dismisses after a staged PDF is parsed or fails visibly.
+- [x] Make the page thumbnail rail visibly scrollable and reliably expose every page in multi-page PDFs.
+- [x] Add persistent visible labels to all editor tool controls, while preserving compact responsive behavior.

@@ -6,9 +6,11 @@ const baseUrl = process.env.PDF_EDITOR_URL || "http://127.0.0.1:3000";
 const outputDir = "/tmp/pdf-edit-studio-workflow";
 
 const source = await PDFDocument.create();
-const page = source.addPage([595, 842]);
 const font = await source.embedFont(StandardFonts.Helvetica);
-page.drawText("PDF Edit Studio workflow test", { x: 64, y: 760, size: 20, font });
+for (let pageNumber = 1; pageNumber <= 4; pageNumber += 1) {
+  const page = source.addPage([595, 842]);
+  page.drawText(`PDF Edit Studio workflow test · page ${pageNumber}`, { x: 64, y: 760, size: 20, font });
+}
 const sourceBytes = await source.save();
 
 await mkdir(outputDir, { recursive: true });
@@ -32,6 +34,12 @@ try {
   });
   await browserPage.waitForURL(/\/editor$/, { timeout: 10_000 });
   await browserPage.waitForSelector("[data-page-canvas]", { timeout: 20_000 });
+  await browserPage.getByLabel("Open page 4").scrollIntoViewIfNeeded();
+  if (await browserPage.getByLabel("Open page 4").count() !== 1) throw new Error("The fourth page is not available in the thumbnail rail.");
+  const railMetrics = await browserPage.locator(".editor-page-scroll").evaluate(element => ({ overflowY: getComputedStyle(element).overflowY, scrollHeight: element.scrollHeight, clientHeight: element.clientHeight }));
+  if (railMetrics.overflowY !== "scroll" || railMetrics.scrollHeight <= railMetrics.clientHeight) throw new Error("The page thumbnail rail does not provide usable scrolling for additional pages.");
+  await browserPage.getByTitle("Draw").scrollIntoViewIfNeeded();
+  await browserPage.screenshot({ path: `${outputDir}/four-page-editor.png`, fullPage: true });
   const canvas = await browserPage.locator("[data-page-canvas]").boundingBox();
   if (!canvas) throw new Error("Rendered page canvas was not measurable.");
   await browserPage.getByRole("button", { name: "Rotate page" }).click();
@@ -67,7 +75,7 @@ try {
   const downloadPath = `${outputDir}/workflow-edited.pdf`;
   await download.saveAs(downloadPath);
   const exported = await PDFDocument.load(await readFile(downloadPath));
-  if (exported.getPageCount() !== 1) throw new Error("Exported PDF has an unexpected page count.");
+  if (exported.getPageCount() !== 4) throw new Error("Exported PDF has an unexpected page count.");
   if ((await readFile(downloadPath)).byteLength <= sourceBytes.byteLength) throw new Error("Exported PDF was not materially modified.");
   console.log(`Workflow passed: exported ${download.suggestedFilename()} with ${exported.getPageCount()} page.`);
 } finally {
