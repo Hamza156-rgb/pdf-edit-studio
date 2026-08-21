@@ -54,3 +54,4 @@
 - [x] Add an accessible eye icon that toggles password visibility on native sign-up and login forms.
 - [x] Refine the authenticated dashboard with a premium visual hierarchy, clear workspace status, and stronger document presentation.
 - [x] Improve responsive dashboard composition and document actions without changing account or guest-editing behavior.
+- [x] Expand the authenticated dashboard desktop workspace to use the full available viewport width with balanced responsive gutters.

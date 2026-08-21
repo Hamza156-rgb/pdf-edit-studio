@@ -76,13 +76,13 @@ export default function Dashboard() {
 
   return <div className="min-h-screen bg-[#f5f7fb] text-[#162033]">
     <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/90 px-4 backdrop-blur-xl sm:px-6">
-      <div className="mx-auto flex h-[74px] max-w-[1320px] items-center justify-between">
+      <div className="flex h-[74px] w-full items-center justify-between">
         <button onClick={() => setLocation("/")} className="flex items-center gap-3 text-left"><span className="grid h-10 w-10 place-items-center rounded-[14px] bg-[#172033] text-white shadow-[0_8px_18px_rgba(23,32,51,.2)]"><FilePenLine className="h-5 w-5" /></span><span><span className="block font-display text-lg font-semibold tracking-[-.04em]">Editly</span><span className="hidden text-[11px] font-medium text-slate-400 sm:block">Document workspace</span></span></button>
         <div className="flex items-center gap-1.5 sm:gap-2"><span className="hidden items-center gap-2 rounded-full border border-slate-200 bg-[#fbfcfe] px-3 py-1.5 text-xs font-semibold text-slate-500 md:flex"><span className="h-1.5 w-1.5 rounded-full bg-[#1f8f64]" />Workspace secure</span><Button variant="ghost" size="sm" onClick={() => setLocation("/profile")} className="rounded-xl text-slate-600"><Settings className="mr-1.5 h-4 w-4" /><span className="hidden sm:inline">Account</span></Button><Button variant="ghost" size="sm" onClick={() => void logout()} className="rounded-xl text-slate-600"><LogOut className="mr-1.5 h-4 w-4" /><span className="hidden sm:inline">Sign out</span></Button><div className="ml-1 grid h-9 w-9 place-items-center rounded-full bg-[#eaf2ff] text-xs font-bold text-[#326ad8] ring-4 ring-[#f3f7ff]">{user.name?.slice(0, 1).toUpperCase() ?? "U"}</div></div>
       </div>
     </header>
 
-    <main className="mx-auto max-w-[1320px] px-4 py-7 sm:px-6 sm:py-10">
+    <main className="w-full px-4 py-7 sm:px-6 sm:py-10 lg:px-8 xl:px-10 2xl:px-12">
       <section className="grid gap-5 xl:grid-cols-[minmax(0,1fr)_340px]">
         <div className="relative overflow-hidden rounded-[28px] bg-[#172033] px-6 py-7 text-white shadow-[0_24px_55px_-30px_rgba(23,32,51,.65)] sm:px-8 sm:py-9">
           <div className="absolute -right-20 -top-24 h-72 w-72 rounded-full bg-[#326ad8]/35 blur-3xl" /><div className="absolute -bottom-32 left-[35%] h-64 w-64 rounded-full bg-[#7ea8ff]/15 blur-3xl" />
