@@ -1,6 +1,6 @@
-import { eq } from "drizzle-orm";
+import { desc, eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, users } from "../drizzle/schema";
+import { documents, InsertDocument, InsertUser, users } from "../drizzle/schema";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -89,4 +89,71 @@ export async function getUserByOpenId(openId: string) {
   return result.length > 0 ? result[0] : undefined;
 }
 
-// TODO: add feature queries here as your schema grows.
+export async function listDocumentsByOwner(ownerId: number) {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select().from(documents).where(eq(documents.ownerId, ownerId)).orderBy(desc(documents.updatedAt));
+}
+
+export async function createDocument(input: InsertDocument) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  await db.insert(documents).values(input);
+}
+
+export async function renameDocument(ownerId: number, documentId: number, name: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  await db.update(documents).set({ name }).where(sql`${documents.id} = ${documentId} and ${documents.ownerId} = ${ownerId}`);
+}
+
+export async function deleteDocument(ownerId: number, documentId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  await db.delete(documents).where(sql`${documents.id} = ${documentId} and ${documents.ownerId} = ${ownerId}`);
+}
+
+export async function getAdminOverview() {
+  const db = await getDb();
+  if (!db) return { totalUsers: 0, activeUsers: 0, totalDocuments: 0, managedBytes: 0 };
+  const [userCounts] = await db.select({
+    totalUsers: sql<number>`count(*)`,
+    activeUsers: sql<number>`sum(case when ${users.accountStatus} = 'active' then 1 else 0 end)`,
+  }).from(users);
+  const [documentCounts] = await db.select({
+    totalDocuments: sql<number>`count(*)`,
+    managedBytes: sql<number>`coalesce(sum(${documents.byteSize}), 0)`,
+  }).from(documents);
+  return {
+    totalUsers: Number(userCounts?.totalUsers ?? 0),
+    activeUsers: Number(userCounts?.activeUsers ?? 0),
+    totalDocuments: Number(documentCounts?.totalDocuments ?? 0),
+    managedBytes: Number(documentCounts?.managedBytes ?? 0),
+  };
+}
+
+export async function listAdminUsers() {
+  const db = await getDb();
+  if (!db) return [];
+  return db.select({
+    id: users.id,
+    name: users.name,
+    email: users.email,
+    role: users.role,
+    accountStatus: users.accountStatus,
+    createdAt: users.createdAt,
+    lastSignedIn: users.lastSignedIn,
+  }).from(users).orderBy(desc(users.createdAt)).limit(100);
+}
+
+export async function setUserAccountStatus(userId: number, accountStatus: "active" | "disabled") {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  await db.update(users).set({ accountStatus }).where(eq(users.id, userId));
+}
+
+export async function deleteUserAccount(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  await db.delete(users).where(eq(users.id, userId));
+}

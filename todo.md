@@ -1,0 +1,29 @@
+# Project TODO
+
+- [x] Add browser PDF processing dependencies for rendering, page inspection, client-side modification, and drag-sort interactions.
+- [x] Define document metadata and persisted account-owned document records without storing file bytes in the database.
+- [x] Add secure document metadata procedures for listing, renaming, and deleting a user’s saved documents.
+- [x] Build a responsive public landing page with hero upload, product sections, FAQ, privacy messaging, and footer navigation.
+- [x] Implement client-side PDF validation, drag-and-drop/file-picker intake, progress states, metadata extraction, and graceful load errors.
+- [x] Implement an editor shell with desktop toolbar, thumbnail sidebar, document canvas workspace, active-tool inspector, and mobile adaptation.
+- [x] Render real user-supplied PDF pages accurately with lazy page previews, page selection, zoom, fit-to-width, fullscreen, and keyboard navigation.
+- [x] Implement selection, movement, resize, rotation, deletion, and ordered object state for user-added annotations.
+- [x] Implement functional text, freehand pen, highlighter, rectangle/circle/line/arrow, image, and signature tools.
+- [x] Implement whiteout/freehand eraser, rectangle whiteout, and a confirmed permanent-redaction export path.
+- [x] Implement page duplication, rotation, deletion, reordering, blank-page insertion, merge-second-PDF, and per-page extraction download.
+- [x] Implement undo/redo across annotation and page-management state with visible enabled/disabled controls.
+- [x] Implement actual edited-PDF export that writes overlays, page edits, whiteouts, drawings, images, signatures, and flattenable redactions into a downloaded PDF.
+- [x] Implement local autosave and prompt-based session recovery following a browser refresh.
+- [x] Implement save status and guest editing without forcing sign-in; route signed-in users to a document dashboard.
+- [x] Build document dashboard views with search, sort, open, rename, download, and confirmed delete controls.
+- [x] Build a profile/account entry point and a restricted admin statistics and account-management foundation.
+- [x] Add keyboard shortcuts, accessible labels, focus states, tooltips, errors, confirmations, and responsive refinement.
+- [x] Add Vitest coverage for PDF validation/export-state helpers and document management input contracts.
+- [x] Test a real PDF upload-to-export workflow, inspect the exported output, and verify desktop and mobile editor rendering.
+- [x] Implement real zoom state, fit-width and fit-page modes, page keyboard navigation, and lazy thumbnail rendering.
+- [x] Refactor undo/redo snapshot capture for drawing, movement, and resize interactions, then verify history behavior.
+- [x] Add explicit local save-status feedback and connect authenticated document saves to the dashboard library.
+- [x] Make dashboard Open and Download actions usable with saved document data rather than informational placeholders.
+- [x] Add an account-profile route and admin user-management procedures and controls for enable, disable, and delete actions.
+- [x] Add code-verifiable undo/redo coverage for annotation and page snapshots, including draw, move, resize, and page actions.
+- [x] Add explicit tooltips for key editor controls and audit focus-visible behavior and accessible labels across editor workspaces.

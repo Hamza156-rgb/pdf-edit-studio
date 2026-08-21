@@ -1,0 +1,12 @@
+import { useAuth } from "@/_core/hooks/useAuth";
+import { Button } from "@/components/ui/button";
+import { ArrowLeft, FilePenLine, LockKeyhole, Mail, ShieldCheck, UserRound } from "lucide-react";
+import { useLocation } from "wouter";
+
+export default function Profile() {
+  const [, setLocation] = useLocation();
+  const { user, loading } = useAuth();
+  if (loading) return null;
+  return <div className="min-h-screen bg-[#f7f9fc] text-[#172033]"><header className="flex h-16 items-center border-b border-slate-200 bg-white px-5"><Button variant="ghost" size="sm" onClick={() => setLocation("/dashboard")}><ArrowLeft className="mr-1.5 h-4 w-4" />Workspace</Button></header><main className="mx-auto max-w-2xl px-5 py-10"><p className="eyebrow">Account</p><h1 className="mt-3 font-display text-4xl font-semibold tracking-[-.06em]">Your profile</h1><p className="mt-3 leading-7 text-slate-600">Review the identity connected to your private PDF workspace.</p><section className="mt-10 rounded-2xl border border-slate-200 bg-white p-6 shadow-sm"><div className="flex items-center gap-4"><span className="grid h-14 w-14 place-items-center rounded-2xl bg-[#eaf2ff] text-xl font-bold text-[#326ad8]">{user?.name?.slice(0, 1).toUpperCase() ?? "U"}</span><div><p className="font-display text-xl font-semibold tracking-[-.035em]">{user?.name || "Your account"}</p><p className="mt-1 text-sm text-slate-500">{user?.role === "admin" ? "Administrator" : "Workspace member"}</p></div></div><div className="mt-8 divide-y divide-slate-100 border-y border-slate-100"><ProfileRow icon={UserRound} label="Display name" value={user?.name || "Not provided"} /><ProfileRow icon={Mail} label="Email" value={user?.email || "Not provided"} /><ProfileRow icon={LockKeyhole} label="Document processing" value="Local browser session" /></div><div className="mt-6 rounded-xl bg-[#f2f7ff] p-4 text-sm leading-6 text-slate-600"><ShieldCheck className="mb-2 h-4 w-4 text-[#326ad8]" />Your saved guest document sessions remain in this browser’s private storage. Removing browser data can remove these local items.</div></section></main></div>;
+}
+function ProfileRow({ icon: Icon, label, value }: { icon: typeof UserRound; label: string; value: string }) { return <div className="flex items-center gap-3 py-4"><Icon className="h-4 w-4 text-slate-400" /><div><p className="text-xs font-semibold uppercase tracking-wider text-slate-400">{label}</p><p className="mt-1 text-sm font-medium">{value}</p></div></div>; }
