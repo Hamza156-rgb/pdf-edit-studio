@@ -7,6 +7,27 @@ import { validatePdfFile } from "./pdfValidation";
 
 pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
 
+const sourceDocumentCache = new Map<string, Promise<Awaited<ReturnType<typeof pdfjsLib.getDocument>>["promise"] extends Promise<infer T> ? T : never>>();
+
+async function loadSourceDocument(source: SourceDocument) {
+  let documentPromise = sourceDocumentCache.get(source.id);
+  if (!documentPromise) {
+    const parserBytes = source.bytes.slice(0);
+    const task = pdfjsLib.getDocument({ data: new Uint8Array(parserBytes), disableAutoFetch: false, disableStream: false });
+    documentPromise = task.promise;
+    sourceDocumentCache.set(source.id, documentPromise);
+  }
+  return documentPromise;
+}
+
+export async function clearPdfDocumentCache() {
+  const entries = Array.from(sourceDocumentCache.values());
+  sourceDocumentCache.clear();
+  await Promise.all(entries.map(async entry => {
+    try { await (await entry).cleanup(); } catch { /* A failed parser does not need further cleanup. */ }
+  }));
+}
+
 export async function inspectPdf(file: File) {
   const bytes = await file.arrayBuffer();
   try {
@@ -20,10 +41,33 @@ export async function inspectPdf(file: File) {
 }
 
 export async function getPdfPage(source: SourceDocument, index: number) {
-  const parserBytes = source.bytes.slice(0);
-  const task = pdfjsLib.getDocument({ data: new Uint8Array(parserBytes) });
-  const document = await task.promise;
+  const document = await loadSourceDocument(source);
   return document.getPage(index + 1);
+}
+
+export async function renderPdfPage(page: Awaited<ReturnType<typeof getPdfPage>>, canvas: HTMLCanvasElement, rotation: number, preferredScale: number) {
+  const baseViewport = page.getViewport({ scale: 1, rotation });
+  const maxCanvasDimension = 2300;
+  const maxCanvasPixels = 5_000_000;
+  const scaleByDimension = maxCanvasDimension / Math.max(baseViewport.width, baseViewport.height);
+  const scaleByArea = Math.sqrt(maxCanvasPixels / (baseViewport.width * baseViewport.height));
+  const safeScale = Math.max(.45, Math.min(preferredScale, scaleByDimension, scaleByArea));
+
+  const attemptRender = async (scale: number) => {
+    const viewport = page.getViewport({ scale, rotation });
+    canvas.width = Math.max(1, Math.floor(viewport.width));
+    canvas.height = Math.max(1, Math.floor(viewport.height));
+    const context = canvas.getContext("2d", { alpha: false });
+    if (!context) throw new Error("Your browser could not create a PDF canvas.");
+    await page.render({ canvas, canvasContext: context, viewport, background: "#ffffff" }).promise;
+  };
+
+  try {
+    await attemptRender(safeScale);
+  } catch (error) {
+    if (safeScale <= .5) throw error;
+    await attemptRender(Math.max(.45, safeScale * .55));
+  }
 }
 
 export function toHexRgb(hex = "#172033") {
