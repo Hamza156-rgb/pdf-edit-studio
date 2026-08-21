@@ -14,9 +14,14 @@ async function verify(mode, triggerName, expectedHeading) {
     await page.waitForURL(new RegExp(`/account\\?mode=${mode}$`), { timeout: 10_000 });
     await page.getByRole("heading", { name: expectedHeading, exact: true }).waitFor();
     await page.getByLabel("Email").waitFor();
-    await page.getByLabel("Password").waitFor();
+    const password = page.locator('input[autocomplete="new-password"], input[autocomplete="current-password"]');
+    await password.waitFor();
     if (mode === "signup") await page.getByLabel("Name").waitFor();
     else if (await page.getByLabel("Name").count()) throw new Error("The login view unexpectedly includes a sign-up name field.");
+    await page.getByRole("button", { name: "Show password" }).click();
+    if (await password.getAttribute("type") !== "text") throw new Error("Password visibility toggle did not reveal the password.");
+    await page.getByRole("button", { name: "Hide password" }).click();
+    if (await password.getAttribute("type") !== "password") throw new Error("Password visibility toggle did not conceal the password.");
     if (mode === "signup") { await mkdir(outputDir, { recursive: true }); await page.screenshot({ path: `${outputDir}/native-signup.png`, fullPage: true }); }
   } finally {
     await browser.close();

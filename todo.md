@@ -51,3 +51,4 @@
 - [x] Route new sign-ups and returning logins directly to the personal dashboard with clear next steps.
 - [x] Preserve guest editing while ensuring native account document activity remains owner-scoped.
 - [x] Test native account registration, login failures, session-protected document access, and dashboard routing.
+- [x] Add an accessible eye icon that toggles password visibility on native sign-up and login forms.
