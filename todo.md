@@ -32,3 +32,4 @@
 - [x] Fix PDF file imports that are rejected or fail to transition into the editor despite being selected by the user.
 - [ ] Publish the staged-file import repair and verify the public upload-to-editor path no longer reloads the same file.
 - [x] Add regression coverage ensuring staged PDF imports initialize only once despite editor-state updates.
+- [ ] Fix the public upload lifecycle so “Reading your PDF…” always dismisses after a staged PDF is parsed or fails visibly.
