@@ -159,7 +159,7 @@ export default function PdfEditor() {
     if ((tool === "image" || (tool === "signature" && signatureMode === "upload")) && imageDataUrl) { const annotation: Annotation = { id: uid(), pageId: activePage.id, type: "image", x: point.x, y: point.y, width: .24, height: .18, dataUrl: imageDataUrl, opacity: 1 }; createAnnotation(annotation); return; }
     if (["pen", "highlight", "eraser"].includes(tool) || (tool === "signature" && signatureMode === "draw")) {
       const type: Annotation["type"] = tool === "highlight" ? "highlight" : tool === "eraser" ? "whiteout" : "path";
-      const annotation: Annotation = { id: uid(), pageId: activePage.id, type, x: 0, y: 0, width: 1, height: 1, points: [point], color: tool === "highlight" ? "#f4c84a" : tool === "eraser" ? "#ffffff" : tool === "signature" ? "#172033" : color, opacity: tool === "highlight" ? .42 : opacity, strokeWidth: tool === "signature" ? 3 : strokeWidth };
+      const annotation: Annotation = { id: uid(), pageId: activePage.id, type, x: 0, y: 0, width: 1, height: 1, points: [point], color: tool === "highlight" ? "#f4c84a" : tool === "eraser" ? "#ffffff" : tool === "signature" ? "#172033" : color, opacity: tool === "highlight" ? .42 : tool === "eraser" ? 1 : opacity, strokeWidth: tool === "signature" ? 3 : strokeWidth };
       setAnnotations(current => [...current, annotation]); setSelectedId(annotation.id); pointerRef.current = { start: point, annotationId: annotation.id, mode: "draw", before: { pages, annotations } }; event.currentTarget.setPointerCapture(event.pointerId); return;
     }
     if (["whiteout", "redact", "rectangle", "circle", "line", "arrow"].includes(tool)) { pointerRef.current = { start: point, mode: "shape" }; event.currentTarget.setPointerCapture(event.pointerId); }
@@ -260,8 +260,12 @@ function AnnotationLayer({ annotations, selectedId, onSelect, onMove, onResize }
         };
 
         if (annotation.type === "path" || annotation.type === "highlight" || (annotation.type === "whiteout" && annotation.points?.length)) {
-          const d = (annotation.points ?? []).map((point, index) => `${index ? "L" : "M"} ${point.x} ${point.y}`).join(" ");
-          return <svg key={annotation.id} viewBox="0 0 1 1" preserveAspectRatio="none" className="pointer-events-none absolute inset-0 h-full w-full overflow-visible"><path d={d} fill="none" stroke={annotation.color} strokeWidth={(annotation.strokeWidth ?? 3) / 1000} strokeLinecap="round" strokeLinejoin="round" opacity={annotation.opacity ?? 1} /></svg>;
+          const points = annotation.points ?? [];
+          const d = points.map((point, index) => `${index ? "L" : "M"} ${point.x} ${point.y}`).join(" ");
+          const isWhiteout = annotation.type === "whiteout";
+          const stroke = isWhiteout ? "#ffffff" : annotation.color;
+          const strokeWidth = (annotation.strokeWidth ?? (isWhiteout ? 36 : 3)) / 1000;
+          return <svg key={annotation.id} viewBox="0 0 1 1" preserveAspectRatio="none" className="pointer-events-none absolute inset-0 h-full w-full overflow-visible" style={isWhiteout ? { mixBlendMode: "normal" } : undefined}>{points.length === 1 ? <circle cx={points[0]!.x} cy={points[0]!.y} r={strokeWidth / 2} fill={stroke} opacity={isWhiteout ? 1 : annotation.opacity ?? 1} /> : <path d={d} fill="none" stroke={stroke} strokeWidth={strokeWidth} strokeLinecap="round" strokeLinejoin="round" opacity={isWhiteout ? 1 : annotation.opacity ?? 1} />}</svg>;
         }
         if (annotation.type === "text" || annotation.type === "signature") {
           return <div key={annotation.id} style={{ ...common, color: annotation.color, fontSize: `min(${annotation.fontSize ?? 16}px, 3.4vw)`, fontFamily: annotation.type === "signature" ? "'Instrument Serif', serif" : annotation.fontFamily === "Courier" ? "monospace" : annotation.fontFamily === "TimesRoman" ? "serif" : "sans-serif", fontWeight: annotation.bold ? 700 : 400, fontStyle: annotation.italic || annotation.type === "signature" ? "italic" : "normal", textDecoration: annotation.underline ? "underline" : "none", lineHeight: 1.15 }} onPointerDown={choose} className={`cursor-move whitespace-pre-wrap px-1 py-0.5 ${selected ? "outline outline-1 outline-[#326ad8]" : ""}`}>{annotation.text}{selected && <AnnotationHandles id={annotation.id} onResize={onResize} />}</div>;

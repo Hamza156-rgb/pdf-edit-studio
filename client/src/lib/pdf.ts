@@ -141,16 +141,27 @@ async function flattenPageWithRemovals(source: SourceDocument, pageIndex: number
     context.fillStyle = annotation.type === "redact" && annotation.status === "applied" ? "#111827" : annotation.color || "#ffffff";
     context.strokeStyle = annotation.color || "#ffffff";
     if (annotation.points?.length) {
+      const isWhiteout = annotation.type === "whiteout";
+      if (isWhiteout) {
+        context.fillStyle = "#ffffff";
+        context.strokeStyle = "#ffffff";
+      }
       context.lineCap = "round";
       context.lineJoin = "round";
-      context.lineWidth = Math.max(3, (annotation.strokeWidth || 12) * 2);
+      context.lineWidth = Math.max(6, (annotation.strokeWidth || (isWhiteout ? 36 : 12)) * 2);
       context.beginPath();
-      annotation.points.forEach((point, index) => {
-        const x = point.x * canvas.width;
-        const y = point.y * canvas.height;
-        if (index === 0) context.moveTo(x, y); else context.lineTo(x, y);
-      });
-      context.stroke();
+      if (annotation.points.length === 1) {
+        const point = annotation.points[0]!;
+        context.arc(point.x * canvas.width, point.y * canvas.height, context.lineWidth / 2, 0, Math.PI * 2);
+        context.fill();
+      } else {
+        annotation.points.forEach((point, index) => {
+          const x = point.x * canvas.width;
+          const y = point.y * canvas.height;
+          if (index === 0) context.moveTo(x, y); else context.lineTo(x, y);
+        });
+        context.stroke();
+      }
     } else {
       context.fillRect(annotation.x * canvas.width, annotation.y * canvas.height, annotation.width * canvas.width, annotation.height * canvas.height);
       if (annotation.type === "redact" && annotation.status === "applied") {

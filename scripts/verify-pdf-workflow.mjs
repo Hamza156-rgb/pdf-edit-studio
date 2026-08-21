@@ -62,6 +62,12 @@ try {
   await browserPage.mouse.down();
   await browserPage.mouse.move(canvas.x + canvas.width * .58, canvas.y + canvas.height * .58, { steps: 4 });
   await browserPage.mouse.up();
+  await browserPage.locator('button[title="Eraser"]').click();
+  await browserPage.mouse.move(canvas.x + canvas.width * .095, canvas.y + canvas.height * .26);
+  await browserPage.mouse.down();
+  await browserPage.mouse.move(canvas.x + canvas.width * .095, canvas.y + canvas.height * .9, { steps: 12 });
+  await browserPage.mouse.up();
+  await browserPage.screenshot({ path: `${outputDir}/eraser-preview.png`, fullPage: true });
 
   const downloadPromise = browserPage.waitForEvent("download", { timeout: 10_000 }).catch(() => null);
   await browserPage.getByRole("button", { name: "Download" }).click();

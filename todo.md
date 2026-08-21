@@ -35,3 +35,4 @@
 - [x] Fix the public upload lifecycle so “Reading your PDF…” always dismisses after a staged PDF is parsed or fails visibly.
 - [x] Make the page thumbnail rail visibly scrollable and reliably expose every page in multi-page PDFs.
 - [x] Add persistent visible labels to all editor tool controls, while preserving compact responsive behavior.
+- [x] Make the eraser visibly white out underlying PDF text in the canvas and exported document.
