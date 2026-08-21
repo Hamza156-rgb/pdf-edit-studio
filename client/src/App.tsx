@@ -9,6 +9,7 @@ import PdfEditor from "./pages/PdfEditor";
 import Dashboard from "./pages/Dashboard";
 import Admin from "./pages/Admin";
 import Profile from "./pages/Profile";
+import Account from "./pages/Account";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -19,6 +20,7 @@ function Router() {
       <Route path={"/dashboard"} component={Dashboard} />
       <Route path={"/admin"} component={Admin} />
       <Route path={"/profile"} component={Profile} />
+      <Route path={"/account"} component={Account} />
       <Route path={"/404"} component={NotFound} />
       {/* Final fallback route */}
       <Route component={NotFound} />

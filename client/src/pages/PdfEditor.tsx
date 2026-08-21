@@ -9,6 +9,7 @@ import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from "
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import { useAuth } from "@/_core/hooks/useAuth";
+import { trpc } from "@/lib/trpc";
 import { ArrowDownToLine, ArrowLeft, ArrowRight, BringToFront, Check, ChevronLeft, ChevronRight, Circle, Copy, Download, FileImage, FilePenLine, FilePlus2, FileStack, FileText, Highlighter, ImagePlus, LayoutPanelLeft, Loader2, LockKeyhole, Maximize2, Minus, MousePointer2, Move, Paintbrush, PanelRight, Pencil, Plus, Redo2, RotateCcw, RotateCw, Save, Scissors, Search, ShieldAlert, Signature, Square, Trash2, Undo2, Upload, X, ZoomIn, ZoomOut } from "lucide-react";
 import { ChangeEvent, PointerEvent as ReactPointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
@@ -24,6 +25,7 @@ type PointerDraft = { start: Point; annotationId?: string; mode: "draw" | "shape
 export default function PdfEditor() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
+  const createAccountDocument = trpc.documents.create.useMutation();
   const pendingFile = useMemo(() => consumeStagedPdfFile(), []);
   const pendingSession = useMemo(() => consumeStagedEditorSession(), []);
   const [sources, setSources] = useState<SourceDocument[]>([]);
@@ -198,7 +200,8 @@ export default function PdfEditor() {
     try {
       const id = libraryId ?? uid();
       await saveLibraryDocument({ id, sources, pages, annotations, fileName, savedAt: Date.now() });
-      setLibraryId(id); setSaveStatus("saved"); toast.success("Saved privately to this device.");
+      if (user) await createAccountDocument.mutateAsync({ name: fileName.trim() || "Untitled document", originalFileName: `${fileName.trim() || "untitled-document"}.pdf`, pageCount: pages.length, byteSize: sources.reduce((total, source) => total + source.bytes.byteLength, 0) });
+      setLibraryId(id); setSaveStatus("saved"); toast.success(user ? "Saved locally and added to your account activity." : "Saved privately to this device.");
     } catch { setSaveStatus("error"); toast.error("This browser could not save the session library entry."); }
   };
   const onInputFile = (event: ChangeEvent<HTMLInputElement>, mode: "replace" | "merge" = "replace") => { const file = event.target.files?.[0]; if (file) void loadPdf(file, mode); event.target.value = ""; };

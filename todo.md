@@ -36,3 +36,18 @@
 - [x] Make the page thumbnail rail visibly scrollable and reliably expose every page in multi-page PDFs.
 - [x] Add persistent visible labels to all editor tool controls, while preserving compact responsive behavior.
 - [x] Make the eraser visibly white out underlying PDF text in the canvas and exported document.
+- [x] Add clear sign-up and sign-in entry points using the platform’s secure account flow.
+- [x] Persist signed-in users’ document metadata to their own account library while retaining an optional guest-editing path.
+- [x] Build authenticated account, profile, and personal document dashboard views with user-specific access control.
+- [x] Verify that unauthenticated users cannot access another user’s saved document metadata.
+- [x] Verify and clearly communicate how new users create an account through the secure platform identity portal.
+- [x] Add cross-user document ownership regression coverage for list, rename, and delete operations.
+- [x] Verify both visible account entry points and authenticated workspace routing in a browser flow.
+- [x] Verify post-authenticated access to dashboard/profile and the guest account gate using safe browser test equivalents.
+- [x] Add a safe authenticated workspace regression that verifies the existing signed-in preview session reaches dashboard and profile after account entry.
+- [x] Add a deterministic authenticated browser regression that stubs a valid account session and verifies dashboard/profile access after account entry.
+- [x] Replace external OAuth account selection with an app-native sign-up and login form.
+- [x] Add secure credential storage, session issuance, validation, logout, and protected route behavior for native accounts.
+- [x] Route new sign-ups and returning logins directly to the personal dashboard with clear next steps.
+- [x] Preserve guest editing while ensuring native account document activity remains owner-scoped.
+- [x] Test native account registration, login failures, session-protected document access, and dashboard routing.

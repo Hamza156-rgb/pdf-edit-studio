@@ -1,6 +1,7 @@
 import { desc, eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
 import { documents, InsertDocument, InsertUser, users } from "../drizzle/schema";
+import { randomUUID } from "node:crypto";
 import { ENV } from './_core/env';
 
 let _db: ReturnType<typeof drizzle> | null = null;
@@ -87,6 +88,26 @@ export async function getUserByOpenId(openId: string) {
   const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
 
   return result.length > 0 ? result[0] : undefined;
+}
+
+export async function getNativeUserByEmail(email: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  const result = await db.select().from(users).where(eq(users.email, email.toLowerCase())).limit(1);
+  return result[0];
+}
+
+export async function createNativeUser(input: { name: string; email: string; passwordHash: string }) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  const email = input.email.toLowerCase();
+  const existing = await getNativeUserByEmail(email);
+  if (existing) throw new Error("EMAIL_IN_USE");
+  const openId = `native_${randomUUID()}`;
+  await db.insert(users).values({ openId, name: input.name, email, passwordHash: input.passwordHash, loginMethod: "native", lastSignedIn: new Date() });
+  const user = await getUserByOpenId(openId);
+  if (!user) throw new Error("Unable to create account");
+  return user;
 }
 
 export async function listDocumentsByOwner(ownerId: number) {
