@@ -28,3 +28,4 @@
 - [x] Add code-verifiable undo/redo coverage for annotation and page snapshots, including draw, move, resize, and page actions.
 - [x] Add explicit tooltips for key editor controls and audit focus-visible behavior and accessible labels across editor workspaces.
 - [x] Fix published-editor PDF page rendering that stalls at “Reading your PDF…” and shows “A PDF page could not be rendered.”
+- [x] Prevent overlapping PDF.js render operations on the same canvas, eliminating the live editor flicker and loading loop.

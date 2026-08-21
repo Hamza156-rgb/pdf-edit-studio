@@ -33,6 +33,13 @@ try {
   await browserPage.waitForSelector("[data-page-canvas]", { timeout: 20_000 });
   const canvas = await browserPage.locator("[data-page-canvas]").boundingBox();
   if (!canvas) throw new Error("Rendered page canvas was not measurable.");
+  await browserPage.getByRole("button", { name: "Rotate page" }).click();
+  await browserPage.getByRole("button", { name: "Rotate page" }).click();
+  await browserPage.getByRole("button", { name: "Rotate page" }).click();
+  await browserPage.waitForTimeout(750);
+  if (browserMessages.some(message => /same canvas|PDF render/i.test(message))) {
+    throw new Error(`Concurrent PDF canvas render error detected: ${browserMessages.join(" | ")}`);
+  }
 
   await browserPage.locator('button[title="Text"]').click();
   await browserPage.mouse.click(canvas.x + canvas.width * .18, canvas.y + canvas.height * .16);

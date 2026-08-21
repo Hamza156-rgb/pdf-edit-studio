@@ -9,6 +9,19 @@ pdfjsLib.GlobalWorkerOptions.workerSrc = workerUrl;
 
 const sourceDocumentCache = new Map<string, Promise<Awaited<ReturnType<typeof pdfjsLib.getDocument>>["promise"] extends Promise<infer T> ? T : never>>();
 
+type CanvasRenderTask = { cancel: () => void; promise: Promise<void> };
+type CanvasRenderSlot = { generation: number; queue: Promise<void>; task: CanvasRenderTask | null };
+const canvasRenderSlots = new WeakMap<HTMLCanvasElement, CanvasRenderSlot>();
+
+function getCanvasRenderSlot(canvas: HTMLCanvasElement) {
+  let slot = canvasRenderSlots.get(canvas);
+  if (!slot) {
+    slot = { generation: 0, queue: Promise.resolve(), task: null };
+    canvasRenderSlots.set(canvas, slot);
+  }
+  return slot;
+}
+
 async function loadSourceDocument(source: SourceDocument) {
   let documentPromise = sourceDocumentCache.get(source.id);
   if (!documentPromise) {
@@ -45,7 +58,10 @@ export async function getPdfPage(source: SourceDocument, index: number) {
   return document.getPage(index + 1);
 }
 
-export async function renderPdfPage(page: Awaited<ReturnType<typeof getPdfPage>>, canvas: HTMLCanvasElement, rotation: number, preferredScale: number) {
+export async function renderPdfPage(page: Awaited<ReturnType<typeof getPdfPage>>, canvas: HTMLCanvasElement, rotation: number, preferredScale: number, signal?: AbortSignal) {
+  const slot = getCanvasRenderSlot(canvas);
+  const generation = ++slot.generation;
+  slot.task?.cancel();
   const baseViewport = page.getViewport({ scale: 1, rotation });
   const maxCanvasDimension = 2300;
   const maxCanvasPixels = 5_000_000;
@@ -54,19 +70,43 @@ export async function renderPdfPage(page: Awaited<ReturnType<typeof getPdfPage>>
   const safeScale = Math.max(.45, Math.min(preferredScale, scaleByDimension, scaleByArea));
 
   const attemptRender = async (scale: number) => {
+    if (signal?.aborted || slot.generation !== generation) return;
     const viewport = page.getViewport({ scale, rotation });
     canvas.width = Math.max(1, Math.floor(viewport.width));
     canvas.height = Math.max(1, Math.floor(viewport.height));
     const context = canvas.getContext("2d", { alpha: false });
     if (!context) throw new Error("Your browser could not create a PDF canvas.");
-    await page.render({ canvas, canvasContext: context, viewport, background: "#ffffff" }).promise;
+    const task = page.render({ canvas, canvasContext: context, viewport, background: "#ffffff" });
+    slot.task = task;
+    try {
+      await task.promise;
+    } finally {
+      if (slot.task === task) slot.task = null;
+    }
   };
 
+  const abortRender = () => {
+    if (slot.generation === generation) {
+      slot.generation += 1;
+      slot.task?.cancel();
+    }
+  };
+  signal?.addEventListener("abort", abortRender, { once: true });
+
+  const run = slot.queue.catch(() => undefined).then(async () => {
+    if (signal?.aborted || slot.generation !== generation) return;
+    try {
+      await attemptRender(safeScale);
+    } catch (error) {
+      if (signal?.aborted || slot.generation !== generation || safeScale <= .5) throw error;
+      await attemptRender(Math.max(.45, safeScale * .55));
+    }
+  });
+  slot.queue = run.catch(() => undefined);
   try {
-    await attemptRender(safeScale);
-  } catch (error) {
-    if (safeScale <= .5) throw error;
-    await attemptRender(Math.max(.45, safeScale * .55));
+    await run;
+  } finally {
+    signal?.removeEventListener("abort", abortRender);
   }
 }
 
