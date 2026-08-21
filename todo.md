@@ -52,3 +52,5 @@
 - [x] Preserve guest editing while ensuring native account document activity remains owner-scoped.
 - [x] Test native account registration, login failures, session-protected document access, and dashboard routing.
 - [x] Add an accessible eye icon that toggles password visibility on native sign-up and login forms.
+- [x] Refine the authenticated dashboard with a premium visual hierarchy, clear workspace status, and stronger document presentation.
+- [x] Improve responsive dashboard composition and document actions without changing account or guest-editing behavior.
