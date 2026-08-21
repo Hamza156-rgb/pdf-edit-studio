@@ -62,6 +62,7 @@ export default function PdfEditor() {
   const imageRef = useRef<HTMLInputElement>(null);
   const signatureRef = useRef<HTMLInputElement>(null);
   const pointerRef = useRef<PointerDraft | null>(null);
+  const initialImportHandledRef = useRef(false);
   const annotationRef = useRef({ pages, annotations });
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
@@ -99,9 +100,12 @@ export default function PdfEditor() {
   }, [annotations, commit, pages]);
 
   useEffect(() => {
+    if (initialImportHandledRef.current) return;
     if (pendingSession) {
+      initialImportHandledRef.current = true;
       setSources(pendingSession.sources); setPages(pendingSession.pages); setAnnotations(pendingSession.annotations); setFileName(pendingSession.fileName); setActivePageId(pendingSession.pages[0]?.id ?? null); setLibraryId((pendingSession as typeof pendingSession & { id?: string }).id ?? null);
     } else if (pendingFile) {
+      initialImportHandledRef.current = true;
       void loadPdf(pendingFile);
     }
   }, [loadPdf, pendingFile, pendingSession]);

@@ -29,3 +29,6 @@
 - [x] Add explicit tooltips for key editor controls and audit focus-visible behavior and accessible labels across editor workspaces.
 - [x] Fix published-editor PDF page rendering that stalls at “Reading your PDF…” and shows “A PDF page could not be rendered.”
 - [x] Prevent overlapping PDF.js render operations on the same canvas, eliminating the live editor flicker and loading loop.
+- [x] Fix PDF file imports that are rejected or fail to transition into the editor despite being selected by the user.
+- [ ] Publish the staged-file import repair and verify the public upload-to-editor path no longer reloads the same file.
+- [x] Add regression coverage ensuring staged PDF imports initialize only once despite editor-state updates.

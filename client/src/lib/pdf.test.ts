@@ -12,4 +12,8 @@ describe("validatePdfFile", () => {
     expect(validatePdfFile(file("notes.txt", "text/plain", 100))).toMatch(/Only PDF/);
     expect(validatePdfFile(file("large.pdf", "application/pdf", MAX_PDF_BYTES + 1))).toMatch(/50 MB/);
   });
+
+  it("accepts browsers that leave the PDF MIME type blank when the filename is valid", () => {
+    expect(validatePdfFile(file("signed-contract.PDF", "", 4096))).toBeNull();
+  });
 });

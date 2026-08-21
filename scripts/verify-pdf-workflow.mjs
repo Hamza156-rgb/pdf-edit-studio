@@ -24,12 +24,13 @@ browserPage.on("console", message => {
 browserPage.on("pageerror", error => browserMessages.push(`page: ${error.message}`));
 
 try {
-  await browserPage.goto(`${baseUrl}/editor`, { waitUntil: "networkidle" });
-  await browserPage.setInputFiles("#empty-upload", {
+  await browserPage.goto(baseUrl, { waitUntil: "networkidle" });
+  await browserPage.locator('input[type="file"]').first().setInputFiles({
     name: "workflow.pdf",
     mimeType: "application/pdf",
     buffer: Buffer.from(sourceBytes),
   });
+  await browserPage.waitForURL(/\/editor$/, { timeout: 10_000 });
   await browserPage.waitForSelector("[data-page-canvas]", { timeout: 20_000 });
   const canvas = await browserPage.locator("[data-page-canvas]").boundingBox();
   if (!canvas) throw new Error("Rendered page canvas was not measurable.");
