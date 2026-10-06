@@ -200,3 +200,24 @@ body { font-family: var(--font-sans); }
 aside > div > div[class*="grid-cols-4"] { grid-template-columns: repeat(2, minmax(0, 1fr)); gap: .45rem; padding: .75rem; }
 aside > div > div[class*="grid-cols-4"] > button[title] { aspect-ratio: auto; min-height: 2.7rem; display: flex; align-items: center; gap: .55rem; padding: .45rem .55rem; text-align: left; }
 aside > div > div[class*="grid-cols-4"] > button[title]::after { content: attr(title); font-size: .72rem; font-weight: 650; line-height: 1.1; }
+
+/* The dashboard density switch keeps the premium composition intact while reducing vertical chrome for power users. */
+[data-dashboard-density="compact"] .dashboard-main { padding-top: 1.5rem; padding-bottom: 1.5rem; }
+[data-dashboard-density="compact"] .dashboard-main > section:first-child { gap: 1rem; }
+[data-dashboard-density="compact"] .dashboard-main > section:first-child > div,
+[data-dashboard-density="compact"] .dashboard-main > section:first-child > aside { border-radius: 1.4rem; padding: 1.25rem; }
+[data-dashboard-density="compact"] .dashboard-main > section:first-child h1 { margin-top: 1.25rem; font-size: 2.35rem; }
+[data-dashboard-density="compact"] .dashboard-main > section:first-child p { margin-top: .65rem; line-height: 1.55; }
+[data-dashboard-density="compact"] .dashboard-main > section:first-child .mt-7 { margin-top: 1.25rem; }
+[data-dashboard-density="compact"] .dashboard-main > section:first-child .mt-6 { margin-top: 1rem; }
+[data-dashboard-density="compact"] .dashboard-metrics { margin-top: 1rem; gap: .75rem; }
+[data-dashboard-density="compact"] .dashboard-metrics > div { padding: 1rem; border-radius: 1.1rem; }
+[data-dashboard-density="compact"] .dashboard-metrics > div .mt-5 { margin-top: .8rem; }
+[data-dashboard-density="compact"] .dashboard-main > section:last-child { margin-top: 1.25rem; gap: 1rem; }
+[data-dashboard-density="compact"] .dashboard-library { border-radius: 1.35rem; }
+[data-dashboard-density="compact"] .dashboard-library > div:first-child { gap: .75rem; padding-top: 1rem; padding-bottom: 1rem; }
+[data-dashboard-density="compact"] .dashboard-library > div:last-child > div { padding-top: .75rem; padding-bottom: .75rem; }
+[data-dashboard-density="compact"] .dashboard-main > section:last-child > aside { gap: 1rem; }
+[data-dashboard-density="compact"] .dashboard-main > section:last-child > aside > section { padding: 1rem; border-radius: 1.35rem; }
+[data-dashboard-density="compact"] .dashboard-main > section:last-child > aside .mt-5 { margin-top: .8rem; }
+[data-dashboard-density="compact"] .dashboard-main > section:last-child > aside .mt-4 { margin-top: .65rem; }
