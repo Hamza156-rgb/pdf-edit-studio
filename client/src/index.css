@@ -245,3 +245,11 @@ aside > div > div[class*="grid-cols-4"] > button[title]::after { content: attr(t
 [data-dashboard-density="compact"] .editor-tool-panel .mt-3 { margin-top: .6rem; }
 [data-dashboard-density="compact"] .editor-tool-panel .mt-4 { margin-top: .75rem; }
 [data-dashboard-density="compact"] .editor-tool-panel .space-y-3 > :not(:first-child) { margin-top: .6rem; }
+
+
+.editor-density-toggle { white-space: nowrap; }
+[data-dashboard-density="compact"] .editor-density-toggle { border-color: #c7dcff; background: #f7fbff; color: #326ad8; }
+@media (max-width: 380px) {
+  .editor-density-toggle { padding-left: .45rem; padding-right: .45rem; }
+  .editor-density-toggle > span:last-child { display: none; }
+}
