@@ -9,3 +9,7 @@ export function loadDashboardDensity(storage: Pick<Storage, "getItem">): Dashboa
 export function saveDashboardDensity(storage: Pick<Storage, "setItem">, density: DashboardDensity) {
   storage.setItem(DASHBOARD_DENSITY_KEY, density);
 }
+
+export function toggleDashboardDensity(density: DashboardDensity): DashboardDensity {
+  return density === "compact" ? "comfortable" : "compact";
+}

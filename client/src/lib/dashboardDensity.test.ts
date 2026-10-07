@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { DASHBOARD_DENSITY_KEY, loadDashboardDensity, saveDashboardDensity } from "./dashboardDensity";
+import { DASHBOARD_DENSITY_KEY, loadDashboardDensity, saveDashboardDensity, toggleDashboardDensity } from "./dashboardDensity";
 
 describe("dashboard density preference", () => {
   it("defaults to comfortable and preserves a compact choice", () => {
@@ -13,6 +13,11 @@ describe("dashboard density preference", () => {
     saveDashboardDensity(storage, "compact");
     expect(values.get(DASHBOARD_DENSITY_KEY)).toBe("compact");
     expect(loadDashboardDensity(storage)).toBe("compact");
+  });
+
+  it("toggles between compact and comfortable", () => {
+    expect(toggleDashboardDensity("comfortable")).toBe("compact");
+    expect(toggleDashboardDensity("compact")).toBe("comfortable");
   });
 
   it("falls back safely when storage contains an unknown value", () => {

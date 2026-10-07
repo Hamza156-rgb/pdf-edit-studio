@@ -1,7 +1,7 @@
 import { useAuth } from "@/_core/hooks/useAuth";
 import { Button } from "@/components/ui/button";
 import { exportEditedPdf, triggerPdfDownload } from "@/lib/pdf";
-import { DashboardDensity, loadDashboardDensity, saveDashboardDensity } from "@/lib/dashboardDensity";
+import { DashboardDensity, loadDashboardDensity, saveDashboardDensity, toggleDashboardDensity } from "@/lib/dashboardDensity";
 import { deleteLibraryDocument, LibraryDocumentSummary, listLibraryDocuments, loadLibraryDocument, renameLibraryDocument } from "@/lib/session";
 import { stageEditorSession } from "@/lib/stagedFile";
 import { trpc } from "@/lib/trpc";
@@ -33,6 +33,16 @@ export default function Dashboard() {
 
   useEffect(() => { void refreshLibrary(); }, []);
   useEffect(() => { saveDashboardDensity(window.localStorage, density); }, [density]);
+  useEffect(() => {
+    const handleDensityShortcut = (event: KeyboardEvent) => {
+      if ((event.ctrlKey || event.metaKey) && event.shiftKey && event.key.toLowerCase() === "d") {
+        event.preventDefault();
+        setDensity(current => toggleDashboardDensity(current));
+      }
+    };
+    window.addEventListener("keydown", handleDensityShortcut);
+    return () => window.removeEventListener("keydown", handleDensityShortcut);
+  }, []);
 
   const filtered = useMemo(() => [...documents]
     .filter(document => document.fileName.toLowerCase().includes(search.toLowerCase()))
