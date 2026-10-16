@@ -57,7 +57,7 @@ export default function Home() {
       <main>
         <section className="relative">
           <div className="depth-aurora" /><div className="depth-grid" />
-          <div className="relative mx-auto grid max-w-[1280px] items-center gap-10 px-4 pb-16 pt-12 sm:px-5 lg:grid-cols-[1fr_1fr] lg:px-8 lg:pb-24 lg:pt-16">
+          <div className="relative mx-auto grid max-w-[1280px] grid-cols-[minmax(0,1fr)] items-center gap-6 px-4 pb-12 pt-10 sm:gap-10 sm:px-5 sm:pb-16 sm:pt-12 lg:grid-cols-[1fr_1fr] lg:px-8 lg:pb-24 lg:pt-16">
             <div className="relative z-10">
               <div className="depth-rise mb-6 inline-flex w-fit items-center gap-2 rounded-full border border-slate-200 bg-white/80 px-3 py-1.5 text-xs font-semibold tracking-wide text-slate-600 shadow-sm"><Sparkles className="h-3.5 w-3.5 text-[#326ad8]" /> Thoughtful PDF editing, in your browser</div>
               <h1 className="depth-rise depth-rise-2 font-display max-w-2xl text-[2.9rem] font-semibold leading-[.96] tracking-[-0.065em] text-[#172033] sm:text-6xl lg:text-[5.2rem]">Edit PDFs.<br /><span className="bg-[linear-gradient(100deg,#326ad8_10%,#6b5ce7_60%,#326ad8_100%)] bg-clip-text text-transparent">Your way.</span></h1>
@@ -68,9 +68,9 @@ export default function Home() {
                   <span className="depth-icon h-12 w-12 shrink-0 bg-[linear-gradient(145deg,#4c84ee,#2457c0)] transition group-hover:-translate-y-0.5" style={{ transform: "none" }}><FileUp className="h-5 w-5" /></span>
                   <span className="min-w-0 flex-1">
                     <span className="block font-display text-base font-semibold tracking-[-.02em]">{isDragging ? "Release to open your PDF" : "Drop your PDF here"}</span>
-                    <span className="block truncate text-sm text-slate-500">or browse your device · PDF up to 50 MB</span>
+                    <span className="block text-sm leading-5 text-slate-500">or browse your device · PDF up to 50 MB</span>
                   </span>
-                  <span className="depth-btn hidden rounded-xl bg-[#172033] px-4 py-2.5 text-sm font-medium text-white sm:inline-flex">Choose a PDF</span>
+                  <span className="depth-btn hidden shrink-0 rounded-xl bg-[#172033] px-4 py-2.5 text-sm font-medium text-white sm:inline-flex">Choose a PDF</span>
                 </button>
                 {error && <div className="mt-3 flex items-start gap-2 rounded-xl border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700"><X className="mt-0.5 h-4 w-4 shrink-0" />{error}</div>}
               </div>
@@ -83,7 +83,7 @@ export default function Home() {
         </section>
 
         <section className="border-y border-slate-200/80 bg-white/70">
-          <div className="mx-auto grid max-w-[1280px] grid-cols-2 gap-6 px-4 py-8 text-sm text-slate-500 sm:px-5 md:grid-cols-4 lg:px-8">
+          <div className="mx-auto grid max-w-[1280px] grid-cols-2 gap-x-4 gap-y-6 px-4 py-8 text-sm text-slate-500 sm:gap-6 sm:px-5 md:grid-cols-4 lg:px-8">
             <Stat icon={Layers} value="1 workspace" label="for every edit" />
             <Stat icon={LockKeyhole} value="0 uploads" label="for guest editing" />
             <Stat icon={Download} value="Real export" label="with your changes" />
@@ -91,13 +91,13 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="tools" className="mx-auto max-w-[1280px] scroll-mt-20 px-4 py-24 sm:px-5 lg:px-8">
+        <section id="tools" className="mx-auto max-w-[1280px] scroll-mt-20 px-4 py-16 sm:px-5 sm:py-24 lg:px-8">
           <div className="flex flex-col justify-between gap-6 md:flex-row md:items-end">
             <div><p className="eyebrow">Purpose-built tools</p><h2 className="section-title mt-4 max-w-xl">Every edit, clear and considered.</h2></div>
             <p className="max-w-sm leading-7 text-slate-600">A calm toolset for the things people actually need to change in a document.</p>
           </div>
-          <div className="mt-12 grid auto-rows-[minmax(220px,auto)] gap-4 md:grid-cols-6">
-            <TiltCard className="overflow-hidden rounded-[26px] border border-slate-200 bg-white p-7 md:col-span-4 md:row-span-2" max={5}>
+          <div className="mt-10 grid gap-4 sm:mt-12 md:auto-rows-[minmax(220px,auto)] md:grid-cols-6">
+            <TiltCard className="overflow-hidden rounded-[26px] border border-slate-200 bg-white p-6 sm:p-7 md:col-span-4 md:row-span-2" max={5}>
               <Tone edge="#1f4aa3" from="#4c84ee" to="#2457c0" icon={PenTool} />
               <h3 className="depth-pop mt-6 font-display text-2xl font-semibold tracking-[-.04em]">Annotate with intent</h3>
               <p className="mt-2 max-w-md leading-7 text-slate-600">Add precise text, ink, highlights, shapes, and images directly over the document.</p>
@@ -119,7 +119,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="how" className="relative scroll-mt-20 overflow-hidden bg-[#111827] px-4 py-24 text-white sm:px-5 lg:px-8">
+        <section id="how" className="relative scroll-mt-20 overflow-hidden bg-[#111827] px-4 py-16 text-white sm:px-5 sm:py-24 lg:px-8">
           <div className="depth-grid depth-grid-dark" />
           <div className="absolute -right-40 top-10 h-[420px] w-[420px] rounded-full bg-[#326ad8]/25 blur-[110px]" />
           <div className="relative mx-auto max-w-[1280px]">
@@ -132,13 +132,13 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="privacy" className="mx-auto grid max-w-[1280px] scroll-mt-20 items-center gap-12 px-4 py-24 sm:px-5 lg:grid-cols-2 lg:px-8">
-          <TiltCard className="overflow-hidden rounded-[30px] border border-[#d6e5ff] bg-[linear-gradient(155deg,#f3f8ff,#e4efff)] p-8 sm:p-11" max={4}>
+        <section id="privacy" className="mx-auto grid max-w-[1280px] scroll-mt-20 items-center gap-10 px-4 py-16 sm:gap-12 sm:px-5 sm:py-24 lg:grid-cols-2 lg:px-8">
+          <TiltCard className="overflow-hidden rounded-[30px] border border-[#d6e5ff] bg-[linear-gradient(155deg,#f3f8ff,#e4efff)] p-6 sm:p-11" max={4}>
             <div className="flex items-start justify-between">
               <Tone edge="#1f4aa3" from="#4c84ee" to="#2457c0" icon={ShieldCheck} />
-              <div className="relative h-24 w-28" aria-hidden>
-                {[0, 1, 2].map(index => <span key={index} className="absolute inset-x-0 h-14 rounded-xl border border-white bg-white/70 shadow-[0_14px_24px_-16px_rgba(23,32,51,.5)] backdrop-blur" style={{ top: index * 12, transform: `translateZ(${index * 20}px) scale(${0.86 + index * 0.07})` }} />)}
-                <LockKeyhole className="absolute bottom-3 left-1/2 h-5 w-5 -translate-x-1/2 text-[#326ad8]" style={{ transform: "translateZ(60px)" }} />
+              <div className="relative hidden h-24 w-28 sm:block" aria-hidden>
+                {[0, 1, 2].map(index => <span key={index} className="absolute inset-x-0 flex h-14 flex-col justify-center gap-1.5 rounded-xl border border-white bg-white/80 px-3 shadow-[0_14px_24px_-16px_rgba(23,32,51,.5)] backdrop-blur" style={{ top: index * 12, transform: `translateZ(${index * 20}px) scale(${0.86 + index * 0.07})` }}><span className="h-1.5 w-3/4 rounded-full bg-slate-200" /><span className="h-1.5 w-1/2 rounded-full bg-slate-200" /></span>)}
+                <span className="absolute -bottom-2 right-1 grid h-8 w-8 place-items-center rounded-full bg-[#326ad8] text-white shadow-[0_3px_0_#1f4aa3,0_10px_18px_-8px_rgba(31,74,163,.8)]" style={{ transform: "translateZ(70px)" }}><LockKeyhole className="h-4 w-4" /></span>
               </div>
             </div>
             <h2 className="section-title depth-pop mt-7">Your documents deserve discretion.</h2>
@@ -159,7 +159,7 @@ export default function Home() {
           </div>
         </section>
 
-        <section id="faq" className="scroll-mt-20 border-t border-slate-200 bg-white px-4 py-24 sm:px-5 lg:px-8">
+        <section id="faq" className="scroll-mt-20 border-t border-slate-200 bg-white px-4 py-16 sm:px-5 sm:py-24 lg:px-8">
           <div className="mx-auto grid max-w-[1280px] gap-12 lg:grid-cols-[.7fr_1.3fr]">
             <div><p className="eyebrow">FAQ</p><h2 className="section-title mt-4">Good questions.</h2></div>
             <div className="space-y-3">
@@ -172,13 +172,13 @@ export default function Home() {
           </div>
         </section>
 
-        <section className="px-4 pb-20 sm:px-5 lg:px-8">
-          <div className="relative mx-auto max-w-[1280px] overflow-hidden rounded-[32px] bg-[#172033] px-6 py-14 text-white shadow-[0_40px_80px_-40px_rgba(23,32,51,.7)] sm:px-12">
+        <section className="bg-white px-4 pb-16 sm:px-5 sm:pb-20 lg:px-8">
+          <div className="relative mx-auto max-w-[1280px] overflow-hidden rounded-[28px] bg-[#172033] px-6 py-10 text-white sm:rounded-[32px] sm:py-14 shadow-[0_40px_80px_-40px_rgba(23,32,51,.7)] sm:px-12">
             <div className="depth-grid depth-grid-dark" />
             <div className="absolute -left-24 -top-24 h-72 w-72 rounded-full bg-[#326ad8]/40 blur-3xl" />
             <div className="relative grid items-center gap-8 lg:grid-cols-[1.2fr_.8fr]">
               <div>
-                <h2 className="font-display text-4xl font-semibold tracking-[-.055em] sm:text-5xl">Your next PDF is one drop away.</h2>
+                <h2 className="font-display text-[2rem] font-semibold leading-[1.05] tracking-[-.055em] sm:text-5xl">Your next PDF is one drop away.</h2>
                 <p className="mt-4 max-w-lg leading-7 text-slate-300">Open a file, make your changes, and download the result. No account needed to start.</p>
                 <div className="mt-7 flex flex-wrap gap-3">
                   <Button onClick={openPicker} className="rounded-xl bg-white px-5 text-[#172033] shadow-[0_1px_0_#c7d4ea,0_12px_24px_-12px_rgba(0,0,0,.6)] hover:bg-[#eaf2ff]">Edit a PDF <ArrowRight className="ml-2 h-4 w-4" /></Button>
@@ -205,7 +205,7 @@ function Chip({ icon: Icon, label }: { icon: typeof PenTool; label: string }) {
 
 function AnnotatePreview() {
   return (
-    <div className="relative mt-8 h-56 [transform-style:preserve-3d]" aria-hidden>
+    <div className="relative mt-6 h-44 [transform-style:preserve-3d] sm:mt-8 sm:h-56" aria-hidden>
       <div className="absolute inset-x-0 bottom-0 top-4 rounded-t-2xl border border-slate-200 bg-[#f8fafd] p-6 shadow-inner">
         <span className="block h-2 w-40 rounded-full bg-slate-300" />
         <span className="mt-4 block h-1.5 w-full rounded-full bg-slate-200" />
@@ -221,7 +221,7 @@ function AnnotatePreview() {
 }
 
 function Stat({ icon: Icon, value, label }: { icon: typeof PenTool; value: string; label: string }) {
-  return <div className="flex items-start gap-3"><span className="mt-1 grid h-9 w-9 shrink-0 place-items-center rounded-xl bg-[#eef4ff] text-[#326ad8] shadow-[inset_0_1px_0_#fff,0_2px_0_#d3e2fb]"><Icon className="h-4 w-4" /></span><div><p className="font-display text-xl font-semibold text-[#172033] sm:text-2xl">{value}</p><p className="mt-0.5">{label}</p></div></div>;
+  return <div className="flex items-start gap-3"><span className="mt-0.5 grid h-8 w-8 shrink-0 place-items-center sm:mt-1 sm:h-9 sm:w-9 rounded-xl bg-[#eef4ff] text-[#326ad8] shadow-[inset_0_1px_0_#fff,0_2px_0_#d3e2fb]"><Icon className="h-4 w-4" /></span><div className="min-w-0"><p className="font-display text-base font-semibold leading-6 text-[#172033] sm:text-2xl">{value}</p><p className="mt-0.5 text-xs leading-5 sm:text-sm">{label}</p></div></div>;
 }
 
 function Step({ n, icon: Icon, title, copy }: { n: string; icon: typeof PenTool; title: string; copy: string }) {
@@ -238,5 +238,5 @@ function Step({ n, icon: Icon, title, copy }: { n: string; icon: typeof PenTool;
 }
 
 function Faq({ q, a }: { q: string; a: string }) {
-  return <details className="group rounded-2xl border border-slate-200 bg-[#fbfcfe] px-5 py-4 transition open:bg-white open:shadow-[0_18px_36px_-28px_rgba(23,32,51,.4)]"><summary className="flex cursor-pointer list-none items-center justify-between gap-6 font-display text-lg font-semibold tracking-[-.025em] text-[#172033]">{q}<span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#eef4ff] text-[#326ad8] transition group-open:rotate-45">+</span></summary><p className="max-w-2xl pt-3 leading-7 text-slate-600">{a}</p></details>;
+  return <details className="group rounded-2xl border border-slate-200 bg-[#fbfcfe] px-5 py-4 transition open:bg-white open:shadow-[0_18px_36px_-28px_rgba(23,32,51,.4)]"><summary className="flex cursor-pointer list-none items-center justify-between gap-4 font-display text-base font-semibold sm:gap-6 sm:text-lg tracking-[-.025em] text-[#172033]">{q}<span className="grid h-8 w-8 shrink-0 place-items-center rounded-full bg-[#eef4ff] text-[#326ad8] transition group-open:rotate-45">+</span></summary><p className="max-w-2xl pt-3 leading-7 text-slate-600">{a}</p></details>;
 }

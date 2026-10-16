@@ -14,7 +14,7 @@ import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } 
 import { CSS } from "@dnd-kit/utilities";
 import { useAuth } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
-import { ArrowRight, ChevronLeft, ChevronRight, Circle, Copy, Download, FileStack, FileText, Highlighter, ImagePlus, LayoutList, LayoutPanelLeft, Loader2, LockKeyhole, Maximize2, Minus, MousePointer2, MoveHorizontal, Paintbrush, Pencil, Plus, Redo2, RotateCcw, RotateCw, Rows3, Save, Scissors, ShieldAlert, Shrink, Signature, Square, Stamp, TextCursorInput, Trash2, Undo2, Upload, ZoomIn, ZoomOut } from "lucide-react";
+import { ArrowRight, ChevronLeft, ChevronRight, Circle, Copy, Download, FileStack, FileText, Highlighter, ImagePlus, LayoutList, LayoutPanelLeft, Loader2, LockKeyhole, Maximize2, Minus, MousePointer2, MoveHorizontal, Paintbrush, Pencil, Plus, Redo2, RotateCcw, RotateCw, Rows3, Save, Scissors, ShieldAlert, Shrink, Signature, SlidersHorizontal, X, Square, Stamp, TextCursorInput, Trash2, Undo2, Upload, ZoomIn, ZoomOut } from "lucide-react";
 import { ChangeEvent, CSSProperties, KeyboardEvent as ReactKeyboardEvent, PointerEvent as ReactPointerEvent, useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { toast } from "sonner";
 import { useLocation } from "wouter";
@@ -83,6 +83,7 @@ export default function PdfEditor() {
   const [signatureMode, setSignatureMode] = useState<"type" | "draw" | "upload">("type");
   const [signatureText, setSignatureText] = useState("Signature");
   const [showPagesOnMobile, setShowPagesOnMobile] = useState(false);
+  const [showToolSheet, setShowToolSheet] = useState(false);
   const [zoom, setZoom] = useState(1);
   const [fitMode, setFitMode] = useState<"width" | "page">("page");
   const [saveStatus, setSaveStatus] = useState<"saved" | "saving" | "error">("saved");
@@ -304,6 +305,7 @@ export default function PdfEditor() {
   if (!pages.length && !loading) return <EditorEmpty onBack={() => setLocation("/")} error={fileError} onFile={event => onInputFile(event)} recoverable={recoverable} onRestore={restoreSession} onDiscard={discardSession} />;
 
   const pageAnnotations = annotations.filter(annotation => annotation.pageId === activePage?.id);
+  const toolPanelProps: ToolPanelProps = { tool, setTool: chooseTool, color, setColor, opacity, setOpacity, strokeWidth, setStrokeWidth, fill, setFill, fontSize, setFontSize, fontFamily, setFontFamily, bold, setBold, italic, setItalic, selected, updateSelected, finalizeUpdate: finalizeSelectedUpdate, deleteSelected, rotateSelected, signatureMode, setSignatureMode, signatureText, setSignatureText, onSignatureImage: () => signatureRef.current?.click(), onApplyRedactions: () => setRedactDialog(true), onMerge: () => mergeRef.current?.click(), onExtract: () => void handleDownload(true), onRemoveWatermark: () => void removeDocumentWatermarks(), docBusy, userName: user?.name };
 
   return <div data-dashboard-density={density} className="editor-shell h-screen overflow-hidden bg-[#eef2f7] text-[#172033]">
     <input ref={uploadRef} type="file" accept="application/pdf,.pdf" className="hidden" onChange={event => onInputFile(event)} /><input ref={mergeRef} type="file" accept="application/pdf,.pdf" className="hidden" onChange={event => onInputFile(event, "merge")} /><input ref={imageRef} type="file" accept="image/png,image/jpeg" className="hidden" onChange={onImageInput} /><input ref={signatureRef} type="file" accept="image/png,image/jpeg" className="hidden" onChange={onImageInput} />
@@ -331,34 +333,42 @@ export default function PdfEditor() {
         <Button size="sm" onClick={() => void saveToLibrary()} disabled={saveStatus === "saving"} className="depth-btn rounded-lg bg-[#172033] text-white hover:bg-[#26334d]">{saveStatus === "saving" ? <Loader2 className="mr-1 h-4 w-4 animate-spin" /> : <Save className="mr-1 h-4 w-4" />}Save</Button>
       </div>
     </header>
-    <div className="editor-workspace grid h-[calc(100vh-3.5rem)] grid-cols-[minmax(0,1fr)] md:grid-cols-[176px_minmax(0,1fr)_288px]">
+    <div className="editor-workspace grid h-[calc(100vh-3.5rem)] grid-cols-[minmax(0,1fr)] md:grid-cols-[136px_minmax(0,1fr)_244px] lg:grid-cols-[176px_minmax(0,1fr)_288px]">
       <aside className={`${showPagesOnMobile ? "absolute inset-x-0 top-14 z-30 h-[calc(100vh-3.5rem)]" : "hidden"} min-h-0 border-r border-slate-200/80 bg-[#f8fafc] md:relative md:block md:h-full`}><PageRail pages={pages} sources={sources} activePageId={activePageId} onSelect={id => { setActivePageId(id); setSelectedId(null); setEditingId(null); setShowPagesOnMobile(false); }} sensors={sensors} onDragEnd={reorder} onRotate={rotatePage} onDuplicate={duplicatePage} onDelete={deletePage} onAdd={addBlankPage} /></aside>
       <div className="relative min-h-0 min-w-0">
         <main className="editor-canvas editor-canvas-bg relative h-full min-w-0 overflow-auto p-4 pb-36 md:p-8 md:pb-24">
           {activePage && <PdfPageSurface page={activePage} source={sources.find(source => source.id === activePage.sourceId)} annotations={pageAnnotations} selectedId={selectedId} editingId={editingId} tool={tool} zoom={zoom} fitMode={fitMode} onPointerDown={onCanvasPointerDown} onPointerMove={onCanvasPointerMove} onPointerUp={onCanvasPointerUp} onSelect={setSelectedId} onMove={startMove} onResize={startResize} onStartEdit={id => { setSelectedId(id); setEditingId(id); }} onStopEdit={() => { setEditingId(null); finalizeSelectedUpdate(); }} onChangeText={(id, text) => updateAnnotation(id, { text })} onEditLine={editExistingLine} />}
         </main>
         <div className="pointer-events-none absolute inset-x-0 bottom-3 z-10 flex flex-col items-center gap-2 px-3 md:bottom-5">
-          <div className="pointer-events-auto flex items-center gap-0.5 rounded-2xl border border-white/70 bg-white/90 p-1 shadow-[0_18px_40px_-18px_rgba(23,32,51,.45)] backdrop-blur-xl">
+          <div className="editor-nav pointer-events-auto flex max-w-full items-center gap-0.5 overflow-x-auto rounded-2xl border border-white/70 bg-white/90 p-1 shadow-[0_18px_40px_-18px_rgba(23,32,51,.45)] backdrop-blur-xl">
             <span className="lg:hidden"><HeaderButton icon={Undo2} label="Undo" onClick={undo} disabled={!history.length} /></span>
             <span className="lg:hidden"><HeaderButton icon={Redo2} label="Redo" onClick={redo} disabled={!future.length} /></span>
             <span className="mx-0.5 h-5 w-px bg-slate-200 lg:hidden" />
             <HeaderButton icon={ChevronLeft} label="Previous page" onClick={() => goToPage(-1)} disabled={activeIndex <= 0} />
-            <span className="min-w-[72px] text-center text-xs font-semibold tabular-nums text-slate-600">{activeIndex + 1} / {pages.length}</span>
+            <span className="min-w-[48px] shrink-0 text-center text-xs font-semibold tabular-nums text-slate-600 sm:min-w-[72px]">{activeIndex + 1} / {pages.length}</span>
             <HeaderButton icon={ChevronRight} label="Next page" onClick={() => goToPage(1)} disabled={activeIndex >= pages.length - 1} />
             <span className="mx-0.5 h-5 w-px bg-slate-200" />
             <HeaderButton icon={ZoomOut} label="Zoom out" onClick={zoomOut} />
-            <button type="button" onClick={() => setZoom(1)} title="Reset zoom" className="w-12 rounded-md py-1 text-center text-xs font-semibold tabular-nums text-slate-600 transition hover:bg-slate-100">{Math.round(zoom * 100)}%</button>
+            <button type="button" onClick={() => setZoom(1)} title="Reset zoom" className="h-8 w-11 shrink-0 rounded-md text-center text-xs font-semibold tabular-nums text-slate-600 transition hover:bg-slate-100 sm:w-12">{Math.round(zoom * 100)}%</button>
             <HeaderButton icon={ZoomIn} label="Zoom in" onClick={zoomIn} />
-            <HeaderButton icon={fitMode === "page" ? MoveHorizontal : Shrink} label={fitMode === "page" ? "Fit width" : "Fit page"} onClick={() => setFitMode(mode => mode === "page" ? "width" : "page")} />
+            <span className="hidden sm:block"><HeaderButton icon={fitMode === "page" ? MoveHorizontal : Shrink} label={fitMode === "page" ? "Fit width" : "Fit page"} onClick={() => setFitMode(mode => mode === "page" ? "width" : "page")} /></span>
           </div>
           <div className="editor-mobile-tools pointer-events-auto flex max-w-full gap-1 overflow-x-auto rounded-2xl border border-white/70 bg-white/90 p-1 shadow-[0_18px_40px_-18px_rgba(23,32,51,.45)] backdrop-blur-xl md:hidden">
             {toolMeta.map(item => <button key={item.tool} type="button" aria-label={item.label} aria-pressed={tool === item.tool} onClick={() => chooseTool(item.tool)} className={`flex shrink-0 flex-col items-center gap-0.5 rounded-xl px-2.5 py-1.5 text-[10px] font-semibold transition ${tool === item.tool ? "bg-[#326ad8] text-white" : "text-slate-500"}`}><item.icon className="h-4 w-4" />{item.label}</button>)}
+            <button type="button" aria-label="Tool options" aria-expanded={showToolSheet} onClick={() => setShowToolSheet(true)} className="flex shrink-0 flex-col items-center gap-0.5 rounded-xl px-2.5 py-1.5 text-[10px] font-semibold text-[#326ad8]"><SlidersHorizontal className="h-4 w-4" />Options</button>
             <button type="button" aria-label="Download" onClick={() => void handleDownload()} className="flex shrink-0 flex-col items-center gap-0.5 rounded-xl px-2.5 py-1.5 text-[10px] font-semibold text-slate-500 sm:hidden"><Download className="h-4 w-4" />Export</button>
           </div>
         </div>
       </div>
-      <aside className="editor-tools hidden overflow-auto border-l border-slate-200/80 bg-white md:block"><ToolPanel tool={tool} setTool={chooseTool} color={color} setColor={setColor} opacity={opacity} setOpacity={setOpacity} strokeWidth={strokeWidth} setStrokeWidth={setStrokeWidth} fill={fill} setFill={setFill} fontSize={fontSize} setFontSize={setFontSize} fontFamily={fontFamily} setFontFamily={setFontFamily} bold={bold} setBold={setBold} italic={italic} setItalic={setItalic} selected={selected} updateSelected={updateSelected} finalizeUpdate={finalizeSelectedUpdate} deleteSelected={deleteSelected} rotateSelected={rotateSelected} signatureMode={signatureMode} setSignatureMode={setSignatureMode} signatureText={signatureText} setSignatureText={setSignatureText} onSignatureImage={() => signatureRef.current?.click()} onApplyRedactions={() => setRedactDialog(true)} onMerge={() => mergeRef.current?.click()} onExtract={() => void handleDownload(true)} onRemoveWatermark={() => void removeDocumentWatermarks()} docBusy={docBusy} userName={user?.name} /></aside>
+      <aside className="editor-tools hidden overflow-auto border-l border-slate-200/80 bg-white md:block"><ToolPanel {...toolPanelProps} /></aside>
     </div>
+    {showToolSheet && <div className="fixed inset-0 z-40 md:hidden">
+      <button type="button" aria-label="Close tool options" onClick={() => setShowToolSheet(false)} className="absolute inset-0 bg-[#172033]/35 backdrop-blur-[2px]" />
+      <div role="dialog" aria-modal="true" aria-label="Tool options" className="depth-rise absolute inset-x-0 bottom-0 max-h-[78vh] overflow-y-auto rounded-t-[28px] bg-white pb-[env(safe-area-inset-bottom)] shadow-[0_-24px_60px_-20px_rgba(23,32,51,.45)]">
+        <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-white/95 px-4 pb-3 pt-2 backdrop-blur"><span className="absolute left-1/2 top-1.5 h-1 w-10 -translate-x-1/2 rounded-full bg-slate-200" /><span className="mt-3 text-sm font-semibold">{metaFor(tool).label} options</span><button type="button" onClick={() => setShowToolSheet(false)} aria-label="Close" className="mt-2 grid h-9 w-9 place-items-center rounded-full bg-slate-100 text-slate-600"><X className="h-4 w-4" /></button></div>
+        <ToolPanel {...toolPanelProps} hideTools />
+      </div>
+    </div>}
     {loading && pages.length === 0 && <div className="fixed inset-0 z-50 grid place-items-center bg-[#172033]/25 backdrop-blur-sm"><div className="rounded-2xl bg-white px-7 py-6 text-center shadow-xl"><Loader2 className="mx-auto h-6 w-6 animate-spin text-[#326ad8]" /><p className="mt-3 font-medium">{loadingText}</p><p className="mt-1 text-sm text-slate-500">This stays in your browser session.</p></div></div>}
     {redactDialog && <div className="fixed inset-0 z-50 grid place-items-center bg-[#172033]/45 p-4"><div role="dialog" aria-modal="true" className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"><div className="grid h-11 w-11 place-items-center rounded-xl bg-red-50 text-red-600"><ShieldAlert className="h-5 w-5" /></div><h2 className="mt-5 font-display text-xl font-semibold tracking-[-.035em]">Apply permanent redactions?</h2><p className="mt-3 text-sm leading-6 text-slate-600">Applied redactions flatten the selected areas when you export, removing the source content from the resulting PDF. This action cannot be undone in the exported file.</p><div className="mt-6 flex justify-end gap-2"><Button variant="outline" onClick={() => setRedactDialog(false)}>Cancel</Button><Button className="bg-red-600 text-white hover:bg-red-700" onClick={applyRedactions}>Apply redactions</Button></div></div></div>}
   </div>;
@@ -526,19 +536,19 @@ function AnnotationLayer({ annotations, selectedId, editingId, tool, onSelect, o
 
 function AnnotationHandles({ id, onResize }: { id: string; onResize: (event: ReactPointerEvent<HTMLButtonElement>, id: string) => void }) { return <button aria-label="Resize selected object" onPointerDown={event => onResize(event, id)} className="absolute -bottom-2 -right-2 h-3.5 w-3.5 cursor-nwse-resize rounded-full border-2 border-white bg-[#326ad8] shadow-[0_2px_6px_rgba(23,32,51,.35)]" />; }
 
-type ToolPanelProps = { tool: ToolName; setTool: (tool: ToolName) => void; color: string; setColor: (value: string) => void; opacity: number; setOpacity: (value: number) => void; strokeWidth: number; setStrokeWidth: (value: number) => void; fill: string; setFill: (value: string) => void; fontSize: number; setFontSize: (value: number) => void; fontFamily: "Helvetica" | "TimesRoman" | "Courier"; setFontFamily: (value: "Helvetica" | "TimesRoman" | "Courier") => void; bold: boolean; setBold: (value: boolean) => void; italic: boolean; setItalic: (value: boolean) => void; selected: Annotation | null; updateSelected: (patch: Partial<Annotation>) => void; finalizeUpdate: () => void; deleteSelected: () => void; rotateSelected: () => void; signatureMode: "type" | "draw" | "upload"; setSignatureMode: (mode: "type" | "draw" | "upload") => void; signatureText: string; setSignatureText: (text: string) => void; onSignatureImage: () => void; onApplyRedactions: () => void; onMerge: () => void; onExtract: () => void; onRemoveWatermark: () => void; docBusy: boolean; userName?: string | null };
+type ToolPanelProps = { tool: ToolName; setTool: (tool: ToolName) => void; color: string; setColor: (value: string) => void; opacity: number; setOpacity: (value: number) => void; strokeWidth: number; setStrokeWidth: (value: number) => void; fill: string; setFill: (value: string) => void; fontSize: number; setFontSize: (value: number) => void; fontFamily: "Helvetica" | "TimesRoman" | "Courier"; setFontFamily: (value: "Helvetica" | "TimesRoman" | "Courier") => void; bold: boolean; setBold: (value: boolean) => void; italic: boolean; setItalic: (value: boolean) => void; selected: Annotation | null; updateSelected: (patch: Partial<Annotation>) => void; finalizeUpdate: () => void; deleteSelected: () => void; rotateSelected: () => void; signatureMode: "type" | "draw" | "upload"; setSignatureMode: (mode: "type" | "draw" | "upload") => void; signatureText: string; setSignatureText: (text: string) => void; onSignatureImage: () => void; onApplyRedactions: () => void; onMerge: () => void; onExtract: () => void; onRemoveWatermark: () => void; docBusy: boolean; userName?: string | null; hideTools?: boolean };
 
-function ToolPanel({ tool, setTool, color, setColor, opacity, setOpacity, strokeWidth, setStrokeWidth, fill, setFill, fontSize, setFontSize, fontFamily, setFontFamily, bold, setBold, italic, setItalic, selected, updateSelected, finalizeUpdate, deleteSelected, rotateSelected, signatureMode, setSignatureMode, signatureText, setSignatureText, onSignatureImage, onApplyRedactions, onMerge, onExtract, onRemoveWatermark, docBusy, userName }: ToolPanelProps) {
+function ToolPanel({ hideTools = false, tool, setTool, color, setColor, opacity, setOpacity, strokeWidth, setStrokeWidth, fill, setFill, fontSize, setFontSize, fontFamily, setFontFamily, bold, setBold, italic, setItalic, selected, updateSelected, finalizeUpdate, deleteSelected, rotateSelected, signatureMode, setSignatureMode, signatureText, setSignatureText, onSignatureImage, onApplyRedactions, onMerge, onExtract, onRemoveWatermark, docBusy, userName }: ToolPanelProps) {
   const isText = tool === "text" || tool === "edittext" || selected?.type === "text";
   const meta = metaFor(tool);
   return <div className="editor-tool-panel flex min-h-full flex-col">
-    <div className="border-b border-slate-100 px-4 py-3.5"><p className="text-sm font-semibold">Tools</p><p className="mt-0.5 text-xs text-slate-500">Pick a tool, then work on the page.</p></div>
-    <div className="space-y-3 border-b border-slate-100 p-3">
+    {!hideTools && <div className="border-b border-slate-100 px-4 py-3.5"><p className="text-sm font-semibold">Tools</p><p className="mt-0.5 text-xs text-slate-500">Pick a tool, then work on the page.</p></div>}
+    {!hideTools && <div className="space-y-3 border-b border-slate-100 p-3">
       {toolGroups.map(group => <div key={group.label}>
         <p className="mb-1.5 px-1 text-[10px] font-bold uppercase tracking-[.14em] text-slate-400">{group.label}</p>
         <div className="grid grid-cols-2 gap-1.5">{group.tools.map(name => { const item = metaFor(name); const active = tool === name; return <button key={name} type="button" title={item.title ?? item.label} aria-pressed={active} onClick={() => setTool(name)} className={`editor-tool-tile group flex min-h-10 items-center gap-2 rounded-xl border px-2 py-1.5 text-left text-xs font-semibold transition ${active ? "border-[#bcd3fb] bg-[#eef4ff] text-[#275cbf] shadow-[inset_0_1px_0_#fff,0_6px_14px_-10px_rgba(50,106,216,.7)]" : "border-transparent text-slate-600 hover:border-slate-200 hover:bg-slate-50 hover:text-[#172033]"}`}><span className={`grid h-7 w-7 shrink-0 place-items-center rounded-lg transition ${active ? "bg-[#326ad8] text-white shadow-[0_3px_0_#1f4aa3]" : "bg-slate-100 text-slate-500 group-hover:bg-white group-hover:shadow-sm"}`}><item.icon className="h-3.5 w-3.5" /></span><span className="truncate">{item.label}</span></button>; })}</div>
       </div>)}
-    </div>
+    </div>}
     <div className="flex-1 space-y-5 p-4">
       <div>
         <p className="text-xs font-bold uppercase tracking-wider text-slate-400">{selected ? (selected.replacesLine ? "Edited text" : "Selected object") : meta.label}</p>
