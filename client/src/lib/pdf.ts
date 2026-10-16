@@ -122,6 +122,17 @@ function textFont(annotation: Annotation) {
   return annotation.bold ? StandardFonts.HelveticaBold : annotation.italic ? StandardFonts.HelveticaOblique : StandardFonts.Helvetica;
 }
 
+export const TEXT_LINE_HEIGHT = 1.15;
+
+/** Standard PDF fonts only cover WinAnsi; swap characters they cannot encode instead of failing the export. */
+function sanitizeForFont(text: string, font: { encodeText: (text: string) => unknown }) {
+  try { font.encodeText(text); return text; } catch { /* fall through to per-character cleanup */ }
+  const replacements: Record<string, string> = { "\u2018": "'", "\u2019": "'", "\u201c": '"', "\u201d": '"', "\u2013": "-", "\u2014": "-", "\u2022": "-", "\u2026": "...", "\u00a0": " " };
+  return Array.from(text).map(char => {
+    try { font.encodeText(char); return char; } catch { return replacements[char] ?? "?"; }
+  }).join("");
+}
+
 function pathString(points: NonNullable<Annotation["points"]>, pageWidth: number, pageHeight: number) {
   return points.map((point, index) => `${index === 0 ? "M" : "L"} ${point.x * pageWidth} ${(1 - point.y) * pageHeight}`).join(" ");
 }
@@ -187,10 +198,15 @@ async function drawAnnotation(pdf: PDFDocument, page: ReturnType<PDFDocument["ad
   const opacity = annotation.opacity ?? 1;
 
   if (annotation.type === "text" || annotation.type === "signature") {
+    if (annotation.cover) {
+      const cover = annotation.cover;
+      page.drawRectangle({ x: cover.x * pageWidth, y: pageHeight - (cover.y + cover.height) * pageHeight, width: cover.width * pageWidth, height: cover.height * pageHeight, color: toHexRgb(cover.color), opacity: 1 });
+    }
     const font = await pdf.embedFont(annotation.type === "signature" ? StandardFonts.CourierOblique : textFont(annotation));
     const fontSize = annotation.fontSize ?? (annotation.type === "signature" ? 22 : 16);
     const lines = (annotation.text || "").split("\n");
-    lines.forEach((line, index) => page.drawText(line, { x, y: y + height - fontSize * (index + 1), size: fontSize, font, color, opacity }));
+    // Line spacing matches the editor's 1.15 line-height so the export looks like the preview.
+    lines.forEach((line, index) => page.drawText(sanitizeForFont(line, font), { x, y: y + height - fontSize - fontSize * TEXT_LINE_HEIGHT * index, size: fontSize, font, color, opacity }));
     return;
   }
 

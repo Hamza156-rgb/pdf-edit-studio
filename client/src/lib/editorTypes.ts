@@ -1,4 +1,4 @@
-export type ToolName = "select" | "text" | "pen" | "highlight" | "eraser" | "whiteout" | "redact" | "rectangle" | "circle" | "line" | "arrow" | "image" | "signature";
+export type ToolName = "select" | "edittext" | "text" | "pen" | "highlight" | "eraser" | "whiteout" | "redact" | "rectangle" | "circle" | "line" | "arrow" | "image" | "signature";
 
 export type SourceDocument = { id: string; name: string; bytes: ArrayBuffer };
 
@@ -38,6 +38,10 @@ export type Annotation = {
   points?: Point[];
   dataUrl?: string;
   status?: "pending" | "applied";
+  /** For edited existing text: the area of the original line that gets covered. */
+  cover?: { x: number; y: number; width: number; height: number; color: string };
+  /** Identifies the original text line this annotation replaces. */
+  replacesLine?: string;
 };
 
 export type EditorSnapshot = { pages: EditorPage[]; annotations: Annotation[] };

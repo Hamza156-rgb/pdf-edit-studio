@@ -24,6 +24,7 @@ describe("exportEditedPdf", () => {
       annotations: [
         { id: "text-1", pageId: page.id, type: "text", x: .12, y: .12, width: .3, height: .08, text: "Added in Editly", color: "#326ad8", opacity: 1, fontSize: 16, fontFamily: "Helvetica" },
         { id: "shape-1", pageId: page.id, type: "shape", x: .1, y: .25, width: .22, height: .08, color: "#172033", fill: "#eaf2ff", opacity: 1, strokeWidth: 2, shape: "rectangle" },
+        { id: "edit-1", pageId: page.id, type: "text", x: .12, y: .07, width: .4, height: .03, text: "Replaced • “smart” text — ok", color: "#111111", opacity: 1, fontSize: 18, fontFamily: "Helvetica", replacesLine: "page-1:line-0", cover: { x: .11, y: .06, width: .42, height: .035, color: "#ffffff" } },
         { id: "path-1", pageId: page.id, type: "path", x: 0, y: 0, width: 1, height: 1, color: "#326ad8", opacity: 1, strokeWidth: 3, points: [{ x: .2, y: .4 }, { x: .35, y: .45 }, { x: .5, y: .42 }] },
       ],
     });
