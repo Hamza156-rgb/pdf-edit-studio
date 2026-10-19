@@ -1,5 +1,6 @@
-import { desc, eq, sql } from "drizzle-orm";
+import { and, desc, eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
+import { createPool } from "mysql2";
 import { documents, InsertDocument, InsertUser, users } from "../drizzle/schema";
 import { randomUUID } from "node:crypto";
 import { ENV } from './_core/env';
@@ -10,7 +11,11 @@ let _db: ReturnType<typeof drizzle> | null = null;
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
     try {
-      _db = drizzle(process.env.DATABASE_URL);
+      // Drizzle reads TIMESTAMP columns as UTC, so every session must run in UTC; otherwise a MySQL
+      // server in a local timezone (e.g. PKT) stores defaultNow() values hours off.
+      const pool = createPool(process.env.DATABASE_URL);
+      pool.on("connection", connection => { connection.query("SET time_zone = '+00:00'"); });
+      _db = drizzle({ client: pool });
     } catch (error) {
       console.warn("[Database] Failed to connect:", error);
       _db = null;
@@ -110,28 +115,49 @@ export async function createNativeUser(input: { name: string; email: string; pas
   return user;
 }
 
-export async function listDocumentsByOwner(ownerId: number) {
+export async function listDocumentsByOwner(ownerId: number, page?: { limit: number; offset: number }) {
   const db = await getDb();
   if (!db) return [];
-  return db.select().from(documents).where(eq(documents.ownerId, ownerId)).orderBy(desc(documents.updatedAt));
+  const query = db.select().from(documents).where(eq(documents.ownerId, ownerId)).orderBy(desc(documents.updatedAt), desc(documents.id));
+  return page ? query.limit(page.limit).offset(page.offset) : query;
 }
 
+export async function countDocumentsByOwner(ownerId: number) {
+  const db = await getDb();
+  if (!db) return 0;
+  const [row] = await db.select({ total: sql<number>`count(*)` }).from(documents).where(eq(documents.ownerId, ownerId));
+  return Number(row?.total ?? 0);
+}
+
+export async function getDocumentByOwner(ownerId: number, documentId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  const result = await db.select().from(documents).where(and(eq(documents.id, documentId), eq(documents.ownerId, ownerId))).limit(1);
+  return result[0];
+}
+
+/** Returns the new document id. */
 export async function createDocument(input: InsertDocument) {
   const db = await getDb();
   if (!db) throw new Error("Database unavailable");
-  await db.insert(documents).values(input);
+  const [result] = await db.insert(documents).values(input);
+  return result.insertId;
 }
 
+/** Returns false when no document with that id belongs to the owner. */
 export async function renameDocument(ownerId: number, documentId: number, name: string) {
   const db = await getDb();
   if (!db) throw new Error("Database unavailable");
-  await db.update(documents).set({ name }).where(sql`${documents.id} = ${documentId} and ${documents.ownerId} = ${ownerId}`);
+  const [result] = await db.update(documents).set({ name }).where(and(eq(documents.id, documentId), eq(documents.ownerId, ownerId)));
+  return result.affectedRows > 0;
 }
 
+/** Returns false when no document with that id belongs to the owner. */
 export async function deleteDocument(ownerId: number, documentId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database unavailable");
-  await db.delete(documents).where(sql`${documents.id} = ${documentId} and ${documents.ownerId} = ${ownerId}`);
+  const [result] = await db.delete(documents).where(and(eq(documents.id, documentId), eq(documents.ownerId, ownerId)));
+  return result.affectedRows > 0;
 }
 
 export async function getAdminOverview() {

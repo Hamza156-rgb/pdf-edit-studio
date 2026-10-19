@@ -15,6 +15,8 @@ export async function createContext(
 
   try {
     user = await sdk.authenticateRequest(opts.req);
+    // A disabled account loses access immediately, even with an unexpired session.
+    if (user.accountStatus === "disabled") user = null;
   } catch (error) {
     // Authentication is optional for public procedures.
     user = null;
