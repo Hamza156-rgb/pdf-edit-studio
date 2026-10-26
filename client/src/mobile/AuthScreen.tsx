@@ -46,7 +46,7 @@ export default function AuthScreen({ mode, onDone }: { mode: Mode; onDone: () =>
       <header className="app-safe-top relative z-10 flex items-center px-3 pt-2">
         <button type="button" onClick={() => window.history.length > 1 ? window.history.back() : setLocation("/welcome")} aria-label="Back" className="grid h-11 w-11 place-items-center rounded-full text-white active:bg-white/10"><ChevronLeft className="h-6 w-6" /></button>
       </header>
-      <div className="relative z-0 -mb-16 -mt-10 h-[230px] shrink-0"><DocumentStack compact /></div>
+      <div className="app-auth-scene relative z-0 -mb-16 -mt-10 h-[230px] shrink-0"><DocumentStack compact /></div>
 
       <main className="app-sheet relative z-10 flex flex-1 flex-col rounded-t-[32px] bg-[#f7f9fc] px-6 pb-6 pt-7 text-[#172033] shadow-[0_-30px_60px_-30px_rgba(0,0,0,.6)]">
         <h1 className="font-display text-[1.9rem] font-semibold leading-tight tracking-[-.05em]">{signup ? "Create your account" : "Welcome back"}</h1>

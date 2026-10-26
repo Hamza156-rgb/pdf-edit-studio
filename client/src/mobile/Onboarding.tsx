@@ -40,7 +40,7 @@ export default function Onboarding({ onDone }: { onDone: () => void }) {
 
       <div ref={trackRef} onScroll={onScroll} className="app-snap-track relative z-10 flex min-h-0 flex-1 snap-x snap-mandatory overflow-x-auto overflow-y-hidden">
         {slides.map((slide, slideIndex) => (
-          <section key={slide.title} aria-hidden={slideIndex !== index} className="flex w-full shrink-0 snap-center flex-col px-6">
+          <section key={slide.title} aria-hidden={slideIndex !== index} className="app-onboarding-slide flex w-full shrink-0 snap-center flex-col px-6">
             <div className="app-onboarding-scene relative min-h-0 flex-1">{slide.scene}</div>
             <div className={`pb-4 transition duration-500 ${slideIndex === index ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"}`}>
               <p className="text-xs font-bold uppercase tracking-[.18em] text-[#8eb8ff]">{slide.eyebrow}</p>

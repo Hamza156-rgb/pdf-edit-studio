@@ -164,14 +164,45 @@ function DocumentRow({ document, onOpen, onMore }: { document: LibraryDocumentSu
   );
 }
 
-function TabScreen({ title, subtitle, action, children }: { title: string; subtitle?: string; action?: ReactNode; children: ReactNode }) {
+/**
+ * Frame for every tab: a sticky app header (logo, collapsing title, account button), a centered
+ * content column that stays readable on tablets, and the docked tab bar.
+ */
+function TabScreen({ title, subtitle, showAccountButton = true, children }: { title: string; subtitle?: string; showAccountButton?: boolean; children: ReactNode }) {
+  const [, setLocation] = useLocation();
+  const { user } = useAuth();
+  const [scrolled, setScrolled] = useState(false);
   useEffect(() => { setStatusBar("light"); }, []);
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 44);
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
   return (
     <div className="app-screen min-h-[100dvh] bg-[#f5f7fb] text-[#172033]">
-      <header className="app-safe-top sticky top-0 z-20 bg-[#f5f7fb]/85 px-5 pb-3 backdrop-blur-xl">
-        <div className="flex items-end justify-between pt-3"><div><p className="text-[13px] font-medium text-slate-500">{subtitle}</p><h1 className="font-display text-[1.75rem] font-semibold leading-tight tracking-[-.05em]">{title}</h1></div>{action}</div>
+      <header className={`app-header sticky top-0 z-20 transition-[background-color,box-shadow,border-color] duration-300 ${scrolled ? "border-b border-slate-200/80 bg-white/85 shadow-[0_8px_24px_-18px_rgba(15,23,42,.45)] backdrop-blur-xl" : "border-b border-transparent bg-[#f5f7fb]"}`}>
+        <div className="app-content flex h-14 items-center gap-2.5">
+          <BrandMark size="sm" />
+          <div className="relative h-full min-w-0 flex-1">
+            <span className={`absolute inset-0 flex items-center font-display text-[17px] font-semibold tracking-[-.03em] transition duration-300 ${scrolled ? "-translate-y-2 opacity-0" : "opacity-100"}`}>Editly</span>
+            <span aria-hidden={!scrolled} className={`absolute inset-0 flex items-center truncate font-display text-[17px] font-semibold tracking-[-.03em] transition duration-300 ${scrolled ? "opacity-100" : "translate-y-2 opacity-0"}`}>{title}</span>
+          </div>
+          {showAccountButton && (
+            <button type="button" onClick={() => { haptic("light"); setLocation("/account"); }} aria-label="Account" className="app-press grid h-10 w-10 shrink-0 place-items-center rounded-full bg-white text-sm font-bold text-[#326ad8] shadow-[0_0_0_1px_rgba(23,32,51,.06),0_8px_18px_-12px_rgba(23,32,51,.5)]">
+              {user?.name ? user.name.slice(0, 1).toUpperCase() : <UserRound className="h-[18px] w-[18px]" />}
+            </button>
+          )}
+        </div>
       </header>
-      <main className="px-5 pb-36">{children}</main>
+      <main className="app-content app-tab-main">
+        <div className="pb-4 pt-1">
+          {subtitle && <p className="text-[13px] font-medium text-slate-500">{subtitle}</p>}
+          <h1 className="font-display text-[1.85rem] font-semibold leading-tight tracking-[-.05em]">{title}</h1>
+        </div>
+        {children}
+      </main>
       <TabBar />
     </div>
   );
@@ -184,13 +215,13 @@ function TabBar() {
   const right = [{ path: "/tools", label: "Tools", icon: LayoutGrid }, { path: "/account", label: "Account", icon: UserRound }];
   const go = (path: string) => { if (path !== location) { haptic("light"); setLocation(path); } };
   return (
-    <nav aria-label="Main" className="app-tabbar fixed inset-x-0 bottom-0 z-30 px-3">
+    <nav aria-label="Main" className="app-tabbar fixed inset-x-0 bottom-0 z-30 border-t border-slate-200/80 bg-white/90 shadow-[0_-12px_30px_-22px_rgba(15,23,42,.45)] backdrop-blur-xl">
       {picker.input}
       {/* Five equal columns keep the + button exactly centered. */}
-      <div className="relative mx-auto grid max-w-md grid-cols-5 items-end rounded-[26px] border border-white/80 bg-white/90 px-1 pb-1.5 pt-1.5 shadow-[0_20px_44px_-18px_rgba(15,23,42,.45)] backdrop-blur-xl">
+      <div className="mx-auto grid h-[var(--app-tabbar-h)] max-w-[560px] grid-cols-5 items-center px-1">
         {left.map(tab => <TabButton key={tab.path} {...tab} active={location === tab.path} onClick={() => go(tab.path)} />)}
-        <div className="flex flex-col items-center">
-          <button type="button" onClick={() => picker.open()} aria-label="Open a PDF" className="app-fab -mt-8 grid h-[58px] w-[58px] place-items-center rounded-[20px] text-white"><Plus className="h-7 w-7" strokeWidth={2.5} /></button>
+        <div className="flex flex-col items-center self-start">
+          <button type="button" onClick={() => picker.open()} aria-label="Open a PDF" className="app-fab -mt-6 grid h-[56px] w-[56px] place-items-center rounded-[20px] text-white"><Plus className="h-7 w-7" strokeWidth={2.5} /></button>
           <span className="mt-1 text-[10.5px] font-semibold text-[#326ad8]">Open</span>
         </div>
         {right.map(tab => <TabButton key={tab.path} {...tab} active={location === tab.path} onClick={() => go(tab.path)} />)}
@@ -201,7 +232,7 @@ function TabBar() {
 
 function TabButton({ label, icon: Icon, active, onClick }: { label: string; icon: typeof Home; active: boolean; onClick: () => void }) {
   return (
-    <button type="button" onClick={onClick} aria-current={active ? "page" : undefined} className={`relative flex flex-col items-center gap-1 rounded-2xl py-1.5 text-[10.5px] font-semibold transition ${active ? "text-[#326ad8]" : "text-slate-400 active:text-slate-600"}`}>
+    <button type="button" onClick={onClick} aria-current={active ? "page" : undefined} className={`flex flex-col items-center gap-0.5 rounded-2xl py-1 text-[10.5px] font-semibold transition ${active ? "text-[#326ad8]" : "text-slate-400 active:text-slate-600"}`}>
       <span className={`grid h-8 w-12 place-items-center rounded-full transition ${active ? "bg-[#eaf2ff]" : ""}`}><Icon className="h-[21px] w-[21px]" strokeWidth={active ? 2.4 : 2} /></span>
       {label}
     </button>
@@ -232,13 +263,13 @@ export function HomeTab() {
   const firstName = user?.name?.split(" ")[0];
 
   return (
-    <TabScreen title={firstName ? `Hi, ${firstName}` : "Welcome"} subtitle={greeting} action={<button type="button" onClick={() => setLocation("/account")} aria-label="Account" className="app-press grid h-11 w-11 place-items-center rounded-full bg-white text-sm font-bold text-[#326ad8] shadow-[0_2px_0_rgba(23,32,51,.06),0_10px_20px_-12px_rgba(23,32,51,.4)]">{user?.name?.slice(0, 1).toUpperCase() ?? <UserRound className="h-5 w-5" />}</button>}>
+    <TabScreen title={firstName ? `Hi, ${firstName}` : "Welcome"} subtitle={greeting}>
       {picker.input}
       <TiltCard max={7} className="relative mt-2 overflow-hidden rounded-[28px] bg-[#172033] p-6 text-white shadow-[0_30px_50px_-28px_rgba(23,32,51,.8)]">
         <div className="depth-grid depth-grid-dark" />
         <div className="pointer-events-none absolute -right-16 -top-16 h-56 w-56 rounded-full bg-[#326ad8]/45 blur-3xl" />
-        <div className="app-hero-scene pointer-events-none absolute -right-10 top-1 w-[190px]"><DocumentStack compact /></div>
-        <div className="relative max-w-[58%]">
+        <div className="app-hero-scene pointer-events-none absolute -right-10 top-1 w-[190px] max-[359px]:hidden"><DocumentStack compact /></div>
+        <div className="relative max-w-[58%] max-[359px]:max-w-full">
           <span className="inline-flex items-center gap-1.5 rounded-full bg-white/10 px-2.5 py-1 text-[11px] font-semibold text-[#cfe0ff]"><Sparkles className="h-3 w-3" />Private editor</span>
           <h2 className="depth-pop mt-4 font-display text-[1.55rem] font-semibold leading-[1.1] tracking-[-.045em]">Open a PDF and start editing.</h2>
         </div>
@@ -255,7 +286,7 @@ export function HomeTab() {
 
       <section className="mt-7">
         <h2 className="text-[13px] font-bold uppercase tracking-[.14em] text-slate-400">Quick tools</h2>
-        <div className="mt-3 grid grid-cols-3 gap-3">
+        <div className="mt-3 grid grid-cols-3 gap-3 md:grid-cols-6">
           {quickTools.map(tool => (
             <TiltCard key={tool.label} max={12} glare={false} className="rounded-[22px]">
               <button type="button" onClick={() => picker.open(tool.query)} className="app-press flex w-full flex-col items-center gap-2.5 rounded-[22px] border border-white bg-white px-2 pb-3.5 pt-4 shadow-[0_14px_26px_-20px_rgba(23,32,51,.55)]">
@@ -304,7 +335,7 @@ const toolGroups = [
   { title: "Document", items: [
     { label: "Watermark", copy: "Remove marked ones", query: "?action=watermark", icon: Stamp, from: "#34b47f", to: "#1c8a5f", edge: "#126044" },
     { label: "Pages", copy: "Reorder, rotate, delete", query: "?action=pages", icon: LayoutGrid, from: "#3a4b70", to: "#22304d", edge: "#0b1120" },
-    { label: "Merge & extract", copy: "Combine or split", query: "?action=options", icon: Combine, from: "#f472b6", to: "#db2777", edge: "#9d174d" },
+    { label: "Merge & split", copy: "Combine or extract pages", query: "?action=options", icon: Combine, from: "#f472b6", to: "#db2777", edge: "#9d174d" },
   ] },
 ];
 
@@ -316,7 +347,7 @@ export function ToolsTab() {
       {toolGroups.map(group => (
         <section key={group.title} className="mt-5 first:mt-1">
           <h2 className="text-[13px] font-bold uppercase tracking-[.14em] text-slate-400">{group.title}</h2>
-          <div className="mt-2.5 grid grid-cols-2 gap-3">
+          <div className="mt-2.5 grid grid-cols-1 gap-3 min-[350px]:grid-cols-2 md:grid-cols-3">
             {group.items.map(tool => (
               <TiltCard key={tool.label} max={10} glare={false} className="rounded-[20px]">
                 <button type="button" onClick={() => picker.open(tool.query)} className="app-press flex min-h-[76px] w-full items-center gap-3 rounded-[20px] border border-white bg-white p-3 text-left shadow-[0_14px_26px_-20px_rgba(23,32,51,.55)]">
@@ -356,7 +387,7 @@ export function LibraryTab() {
 
       {documents === null ? <div className="grid h-60 place-items-center"><Loader2 className="h-6 w-6 animate-spin text-slate-300" /></div>
         : visible.length ? (
-          <div className="mt-4 grid grid-cols-2 gap-3.5">
+          <div className="mt-4 grid grid-cols-2 gap-3.5 sm:grid-cols-3 md:grid-cols-4">
             {visible.map(document => (
               <TiltCard key={document.id} max={9} className="rounded-[22px]">
                 <div className="rounded-[22px] bg-white p-3 shadow-[0_16px_30px_-22px_rgba(23,32,51,.55)]">
@@ -399,7 +430,7 @@ export function AccountTab() {
   const replayIntro = async () => { await setFlag("onboarded", null); setLocation("/welcome"); };
 
   return (
-    <TabScreen title="Account" subtitle={user ? "Signed in" : "Guest mode"}>
+    <TabScreen title="Account" subtitle={user ? "Signed in" : "Guest mode"} showAccountButton={false}>
       {loading ? <div className="grid h-40 place-items-center"><Loader2 className="h-6 w-6 animate-spin text-slate-300" /></div> : user ? (
         <TiltCard max={6} className="relative overflow-hidden rounded-[28px] bg-[#172033] p-5 text-white shadow-[0_30px_50px_-28px_rgba(23,32,51,.8)]">
           <div className="depth-grid depth-grid-dark" />
