@@ -10,6 +10,8 @@ import Dashboard from "./pages/Dashboard";
 import Admin from "./pages/Admin";
 import Profile from "./pages/Profile";
 import Account from "./pages/Account";
+import MobileApp from "./mobile/MobileApp";
+import { isAppShell } from "./lib/native";
 
 function Router() {
   // make sure to consider if you need authentication for certain routes
@@ -41,8 +43,8 @@ function App() {
         // switchable
       >
         <TooltipProvider>
-          <Toaster />
-          <Router />
+          <Toaster {...(isAppShell() ? { position: "top-center" as const, offset: "calc(var(--app-safe-top) + 12px)" } : {})} />
+          {isAppShell() ? <MobileApp /> : <Router />}
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

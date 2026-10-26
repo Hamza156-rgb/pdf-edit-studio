@@ -6,6 +6,7 @@ import { addHistorySnapshot, redoHistory, undoHistory } from "@/lib/editorHistor
 import { clearPdfDocumentCache, exportEditedPdf, getPdfPage, inspectPdf, renderPdfPage, TEXT_LINE_HEIGHT, triggerPdfDownload, validatePdfFile } from "@/lib/pdf";
 import { extractTextLines, sampleColors, TextLine } from "@/lib/pdfText";
 import { removeWatermarks } from "@/lib/watermark";
+import { deliverPdf, haptic, isAppShell, setStatusBar } from "@/lib/native";
 import { DashboardDensity, loadDashboardDensity, saveDashboardDensity, toggleDashboardDensity } from "@/lib/dashboardDensity";
 import { clearEditorSession, loadEditorSession, saveEditorSession, saveLibraryDocument } from "@/lib/session";
 import { consumeStagedEditorSession, consumeStagedPdfFile } from "@/lib/stagedFile";
@@ -59,7 +60,9 @@ export default function PdfEditor() {
   const [annotations, setAnnotations] = useState<Annotation[]>([]);
   const [fileName, setFileName] = useState("Untitled document");
   const [activePageId, setActivePageId] = useState<string | null>(null);
-  const [tool, setToolState] = useState<ToolName>("select");
+  const launchParams = useMemo(() => new URLSearchParams(window.location.search), []);
+  const [tool, setToolState] = useState<ToolName>(() => { const requested = launchParams.get("tool") as ToolName | null; return requested && toolMeta.some(item => item.tool === requested) ? requested : "select"; });
+  const launchActionRef = useRef(launchParams.get("action"));
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [color, setColor] = useState("#326ad8");
@@ -98,7 +101,8 @@ export default function PdfEditor() {
   const initialImportHandledRef = useRef(false);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
-  const setTool = (next: ToolName) => { setToolState(next); setEditingId(null); if (next !== "select") setSelectedId(null); };
+  const setTool = (next: ToolName) => { haptic("light"); setToolState(next); setEditingId(null); if (next !== "select") setSelectedId(null); };
+  useEffect(() => { setStatusBar("light", "#ffffff"); }, []);
 
   const commit = useCallback((nextPages: EditorPage[], nextAnnotations: Annotation[], label?: string) => {
     setHistory(current => addHistorySnapshot(current, { pages, annotations }));
@@ -259,7 +263,7 @@ export default function PdfEditor() {
   const addBlankPage = () => { const blank: EditorPage = { id: uid(), rotation: 0, width: 595, height: 842, label: "Blank page", blank: true }; commit([...pages, blank], annotations, "Blank page added"); setActivePageId(blank.id); };
   const reorder = (event: DragEndEvent) => { if (!event.over || event.active.id === event.over.id) return; const oldIndex = pages.findIndex(page => page.id === event.active.id); const newIndex = pages.findIndex(page => page.id === event.over?.id); commit(arrayMove(pages, oldIndex, newIndex), annotations); };
   const applyRedactions = () => { const count = annotations.filter(annotation => annotation.type === "redact" && annotation.status === "pending").length; if (!count) return toast.info("Mark an area before applying a redaction."); commit(pages, annotations.map(annotation => annotation.type === "redact" && annotation.status === "pending" ? { ...annotation, status: "applied" } : annotation), `${count} redaction${count === 1 ? "" : "s"} applied`); setRedactDialog(false); };
-  const handleDownload = async (singlePage = false) => { if (!pages.length) return; setExporting(true); try { const bytes = await exportEditedPdf({ sources, pages, annotations, onlyPageId: singlePage ? activePageId ?? undefined : undefined }); triggerPdfDownload(bytes, `${fileName.replace(/[^a-z0-9]+/gi, "-").replace(/(^-|-$)/g, "").toLowerCase() || "edited-document"}${singlePage ? "-page" : "-edited"}.pdf`); toast.success(singlePage ? "Page extracted as a new PDF." : "Your edited PDF is ready."); } catch (error) { console.error("[PDF export]", error); toast.error(error instanceof Error ? error.message : "We could not export this PDF."); } finally { setExporting(false); } };
+  const handleDownload = async (singlePage = false) => { if (!pages.length) return; setExporting(true); try { const bytes = await exportEditedPdf({ sources, pages, annotations, onlyPageId: singlePage ? activePageId ?? undefined : undefined }); await deliverPdf(bytes, `${fileName.replace(/[^a-z0-9]+/gi, "-").replace(/(^-|-$)/g, "").toLowerCase() || "edited-document"}${singlePage ? "-page" : "-edited"}.pdf`, triggerPdfDownload); haptic("success"); toast.success(singlePage ? "Page extracted as a new PDF." : "Your edited PDF is ready."); } catch (error) { console.error("[PDF export]", error); toast.error(error instanceof Error ? error.message : "We could not export this PDF."); } finally { setExporting(false); } };
 
   const removeDocumentWatermarks = async () => {
     const usedSourceIds = new Set(pages.map(page => page.sourceId).filter(Boolean));
@@ -284,6 +288,15 @@ export default function PdfEditor() {
       toast.error(error instanceof Error ? error.message : "We could not remove the watermark.");
     } finally { setDocBusy(false); }
   };
+
+  // Quick actions from the app's home screen run once the document has loaded.
+  useEffect(() => {
+    const action = launchActionRef.current;
+    if (!action || !pages.length || !sources.length) return;
+    launchActionRef.current = null;
+    if (action === "watermark") void removeDocumentWatermarks();
+    if (action === "pages") setShowPagesOnMobile(true);
+  });
 
   const saveToLibrary = async () => {
     if (!pages.length || !sources.length) return;
@@ -323,8 +336,8 @@ export default function PdfEditor() {
       <div className="hidden items-center gap-0.5 rounded-xl border border-slate-200 bg-[#f8fafc] p-0.5 lg:flex">
         <HeaderButton icon={Undo2} label="Undo (Ctrl/Cmd + Z)" onClick={undo} disabled={!history.length} />
         <HeaderButton icon={Redo2} label="Redo (Ctrl/Cmd + Shift + Z)" onClick={redo} disabled={!future.length} />
-        <span className="mx-1 h-5 w-px bg-slate-200" />
-        <HeaderButton icon={Maximize2} label="Fullscreen" onClick={() => document.documentElement.requestFullscreen?.()} />
+        {!isAppShell() && <><span className="mx-1 h-5 w-px bg-slate-200" />
+        <HeaderButton icon={Maximize2} label="Fullscreen" onClick={() => document.documentElement.requestFullscreen?.()} /></>}
       </div>
       <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
         <button type="button" onClick={toggleDensity} aria-pressed={density === "compact"} aria-label={`Switch to ${density === "compact" ? "comfortable" : "compact"} density (Ctrl or Cmd + Shift + D)`} title={`${density === "compact" ? "Comfortable" : "Compact"} density · Ctrl/Cmd + Shift + D`} className="editor-density-toggle hidden h-8 items-center gap-1.5 rounded-lg border border-slate-200 bg-[#fbfcfe] px-2 text-[11px] font-semibold text-slate-600 transition hover:border-[#bcd6ff] hover:text-[#326ad8] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#326ad8]/30 sm:inline-flex sm:px-2.5"><span className="grid h-5 w-5 place-items-center rounded-md bg-white text-[#326ad8] shadow-sm">{density === "compact" ? <Rows3 className="h-3.5 w-3.5" /> : <LayoutList className="h-3.5 w-3.5" />}</span><span className="hidden xl:inline">{density === "compact" ? "Comfortable" : "Compact"}</span></button>
@@ -334,12 +347,12 @@ export default function PdfEditor() {
       </div>
     </header>
     <div className="editor-workspace grid h-[calc(100vh-3.5rem)] grid-cols-[minmax(0,1fr)] md:grid-cols-[136px_minmax(0,1fr)_244px] lg:grid-cols-[176px_minmax(0,1fr)_288px]">
-      <aside className={`${showPagesOnMobile ? "absolute inset-x-0 top-14 z-30 h-[calc(100vh-3.5rem)]" : "hidden"} min-h-0 border-r border-slate-200/80 bg-[#f8fafc] md:relative md:block md:h-full`}><PageRail pages={pages} sources={sources} activePageId={activePageId} onSelect={id => { setActivePageId(id); setSelectedId(null); setEditingId(null); setShowPagesOnMobile(false); }} sensors={sensors} onDragEnd={reorder} onRotate={rotatePage} onDuplicate={duplicatePage} onDelete={deletePage} onAdd={addBlankPage} /></aside>
+      <aside className={`${showPagesOnMobile ? "editor-pages-mobile absolute inset-x-0 top-14 z-30 h-[calc(100vh-3.5rem)]" : "hidden"} min-h-0 border-r border-slate-200/80 bg-[#f8fafc] md:relative md:block md:h-full`}><PageRail pages={pages} sources={sources} activePageId={activePageId} onSelect={id => { setActivePageId(id); setSelectedId(null); setEditingId(null); setShowPagesOnMobile(false); }} sensors={sensors} onDragEnd={reorder} onRotate={rotatePage} onDuplicate={duplicatePage} onDelete={deletePage} onAdd={addBlankPage} /></aside>
       <div className="relative min-h-0 min-w-0">
         <main className="editor-canvas editor-canvas-bg relative h-full min-w-0 overflow-auto p-4 pb-36 md:p-8 md:pb-24">
           {activePage && <PdfPageSurface page={activePage} source={sources.find(source => source.id === activePage.sourceId)} annotations={pageAnnotations} selectedId={selectedId} editingId={editingId} tool={tool} zoom={zoom} fitMode={fitMode} onPointerDown={onCanvasPointerDown} onPointerMove={onCanvasPointerMove} onPointerUp={onCanvasPointerUp} onSelect={setSelectedId} onMove={startMove} onResize={startResize} onStartEdit={id => { setSelectedId(id); setEditingId(id); }} onStopEdit={() => { setEditingId(null); finalizeSelectedUpdate(); }} onChangeText={(id, text) => updateAnnotation(id, { text })} onEditLine={editExistingLine} />}
         </main>
-        <div className="pointer-events-none absolute inset-x-0 bottom-3 z-10 flex flex-col items-center gap-2 px-3 md:bottom-5">
+        <div className="editor-floating pointer-events-none absolute inset-x-0 bottom-3 z-10 flex flex-col items-center gap-2 px-3 md:bottom-5">
           <div className="editor-nav pointer-events-auto flex max-w-full items-center gap-0.5 overflow-x-auto rounded-2xl border border-white/70 bg-white/90 p-1 shadow-[0_18px_40px_-18px_rgba(23,32,51,.45)] backdrop-blur-xl">
             <span className="lg:hidden"><HeaderButton icon={Undo2} label="Undo" onClick={undo} disabled={!history.length} /></span>
             <span className="lg:hidden"><HeaderButton icon={Redo2} label="Redo" onClick={redo} disabled={!future.length} /></span>
@@ -364,7 +377,7 @@ export default function PdfEditor() {
     </div>
     {showToolSheet && <div className="fixed inset-0 z-40 md:hidden">
       <button type="button" aria-label="Close tool options" onClick={() => setShowToolSheet(false)} className="absolute inset-0 bg-[#172033]/35 backdrop-blur-[2px]" />
-      <div role="dialog" aria-modal="true" aria-label="Tool options" className="depth-rise absolute inset-x-0 bottom-0 max-h-[78vh] overflow-y-auto rounded-t-[28px] bg-white pb-[env(safe-area-inset-bottom)] shadow-[0_-24px_60px_-20px_rgba(23,32,51,.45)]">
+      <div role="dialog" aria-modal="true" aria-label="Tool options" className="depth-rise app-safe-bottom absolute inset-x-0 bottom-0 max-h-[78vh] overflow-y-auto rounded-t-[28px] bg-white shadow-[0_-24px_60px_-20px_rgba(23,32,51,.45)]">
         <div className="sticky top-0 z-10 flex items-center justify-between border-b border-slate-100 bg-white/95 px-4 pb-3 pt-2 backdrop-blur"><span className="absolute left-1/2 top-1.5 h-1 w-10 -translate-x-1/2 rounded-full bg-slate-200" /><span className="mt-3 text-sm font-semibold">{metaFor(tool).label} options</span><button type="button" onClick={() => setShowToolSheet(false)} aria-label="Close" className="mt-2 grid h-9 w-9 place-items-center rounded-full bg-slate-100 text-slate-600"><X className="h-4 w-4" /></button></div>
         <ToolPanel {...toolPanelProps} hideTools />
       </div>
@@ -452,7 +465,7 @@ function PdfPageSurface({ page, source, annotations, selectedId, editingId, tool
 
   return <div className="min-h-full min-w-max py-6">
     <div style={{ width }} className="mx-auto">
-      {tool === "edittext" && <div className="mb-3 flex justify-center"><span className="inline-flex items-center gap-2 rounded-full border border-[#cfe0ff] bg-white/95 px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm">{lines === null ? <><Loader2 className="h-3.5 w-3.5 animate-spin text-[#326ad8]" />Finding text on this page…</> : lines.length ? <><TextCursorInput className="h-3.5 w-3.5 text-[#326ad8]" />Click any highlighted line to edit it</> : <><ShieldAlert className="h-3.5 w-3.5 text-amber-600" />No editable text here — it may be a scanned image. Use Whiteout + Add text.</>}</span></div>}
+      {tool === "edittext" && <div className="mb-3 flex w-0 min-w-full justify-center"><span className="inline-flex max-w-full items-center gap-2 rounded-2xl text-left sm:rounded-full border border-[#cfe0ff] bg-white/95 px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm">{lines === null ? <><Loader2 className="h-3.5 w-3.5 animate-spin text-[#326ad8]" />Finding text on this page…</> : lines.length ? <><TextCursorInput className="h-3.5 w-3.5 text-[#326ad8]" />Click any highlighted line to edit it</> : <><ShieldAlert className="h-3.5 w-3.5 text-amber-600" />No editable text here — it may be a scanned image. Use Whiteout + Add text.</>}</span></div>}
       <div ref={surfaceRef} data-page-canvas style={{ aspectRatio: String(aspect) }} className={`editor-paper relative w-full select-none overflow-hidden bg-white ${cursor}`} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}>
         <canvas ref={canvasRef} className="pointer-events-none absolute inset-0 h-full w-full" />
         {page.blank && <div className="absolute inset-0 bg-white" />}

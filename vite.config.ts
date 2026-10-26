@@ -150,7 +150,19 @@ function vitePluginManusDebugCollector(): Plugin {
   };
 }
 
-const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector()];
+// Drop the analytics tag unless an endpoint is configured; otherwise it requests a literal
+// "%VITE_ANALYTICS_ENDPOINT%/umami" path, gets index.html back, and throws a syntax error.
+function stripUnconfiguredAnalytics(): Plugin {
+  return {
+    name: "strip-unconfigured-analytics",
+    transformIndexHtml(html) {
+      if (process.env.VITE_ANALYTICS_ENDPOINT) return html;
+      return html.replace(/\s*<script[^>]*%VITE_ANALYTICS_ENDPOINT%[^>]*><\/script>/, "");
+    },
+  };
+}
+
+const plugins = [react(), tailwindcss(), jsxLocPlugin(), vitePluginManusRuntime(), vitePluginManusDebugCollector(), stripUnconfiguredAnalytics()];
 
 export default defineConfig({
   plugins,

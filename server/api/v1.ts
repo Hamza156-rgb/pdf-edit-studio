@@ -105,7 +105,12 @@ export function rateLimit({ windowMs, max }: { windowMs: number; max: number }) 
   };
 }
 
-function cors(allowedOrigins: string[]) {
+export function resolveAllowedOrigins() {
+  return process.env.MOBILE_ALLOWED_ORIGINS ? process.env.MOBILE_ALLOWED_ORIGINS.split(",").map(origin => origin.trim()).filter(Boolean) : DEFAULT_ALLOWED_ORIGINS;
+}
+
+/** CORS for the apps' WebView origins. Bearer-token only, so credentials are never allowed. */
+export function mobileCors(allowedOrigins: string[] = resolveAllowedOrigins()) {
   return (req: Request, res: Response, next: NextFunction) => {
     const origin = req.headers.origin;
     if (origin && allowedOrigins.includes(origin)) {
@@ -121,12 +126,11 @@ function cors(allowedOrigins: string[]) {
 }
 
 export function createMobileApiRouter(options: { allowedOrigins?: string[]; authRateLimit?: { windowMs: number; max: number } } = {}) {
-  const allowedOrigins = options.allowedOrigins
-    ?? (process.env.MOBILE_ALLOWED_ORIGINS ? process.env.MOBILE_ALLOWED_ORIGINS.split(",").map(origin => origin.trim()).filter(Boolean) : DEFAULT_ALLOWED_ORIGINS);
+  const allowedOrigins = options.allowedOrigins ?? resolveAllowedOrigins();
   const authLimiter = rateLimit(options.authRateLimit ?? { windowMs: 60_000, max: 10 });
   const api = express.Router();
 
-  api.use(cors(allowedOrigins));
+  api.use(mobileCors(allowedOrigins));
   api.use(express.json({ limit: "1mb" }));
   api.use((_req, res, next) => { res.setHeader("Cache-Control", "no-store"); next(); });
 

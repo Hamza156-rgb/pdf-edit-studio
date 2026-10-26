@@ -1,6 +1,9 @@
 import { PDFDocument, StandardFonts, degrees, rgb } from "pdf-lib";
-import * as pdfjsLib from "pdfjs-dist";
-import workerUrl from "pdfjs-dist/build/pdf.worker.min.mjs?url";
+// The legacy build bundles polyfills for very new JS APIs (Map.getOrInsertComputed, Math.sumPrecise,
+// Uint8Array.toHex/fromBase64) that the modern build calls directly. Without it, PDFs fail to open in
+// any browser or Android/iOS WebView that isn't fully up to date.
+import * as pdfjsLib from "pdfjs-dist/legacy/build/pdf.mjs";
+import workerUrl from "pdfjs-dist/legacy/build/pdf.worker.min.mjs?url";
 import { Annotation, EditorPage, SourceDocument } from "./editorTypes";
 export { MAX_PDF_BYTES, validatePdfFile } from "./pdfValidation";
 import { validatePdfFile } from "./pdfValidation";

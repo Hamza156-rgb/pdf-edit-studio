@@ -1,4 +1,5 @@
 import { startLogin } from "@/const";
+import { clearToken, isAppShell } from "@/lib/native";
 import { trpc } from "@/lib/trpc";
 import { TRPCClientError } from "@trpc/client";
 import { useCallback, useEffect, useMemo } from "react";
@@ -45,6 +46,7 @@ export function useAuth(options?: UseAuthOptions) {
       try {
         sessionStorage.removeItem("manus-cookie");
       } catch {}
+      if (isAppShell()) await clearToken();
       utils.auth.me.setData(undefined, null);
       await utils.auth.me.invalidate();
     }

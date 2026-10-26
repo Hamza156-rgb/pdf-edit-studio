@@ -1,4 +1,4 @@
-import { FilePenLine } from "lucide-react";
+import { FilePenLine, Highlighter, LockKeyhole, PenLine, ShieldCheck, Signature, Stamp, TextCursorInput } from "lucide-react";
 import { CSSProperties, HTMLAttributes, PointerEvent, ReactNode, useCallback, useRef } from "react";
 
 /**
@@ -7,10 +7,10 @@ import { CSSProperties, HTMLAttributes, PointerEvent, ReactNode, useCallback, us
  * devices and users who prefer reduced motion (see the `.depth-*` rules in index.css).
  */
 
-function canTilt() {
-  return typeof window !== "undefined"
-    && window.matchMedia("(hover: hover) and (pointer: fine)").matches
-    && !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+function canTilt(pointerType: string) {
+  if (typeof window === "undefined" || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return false;
+  // Mice tilt on hover; fingers and pens tilt while pressed, which pointer events only report during contact.
+  return pointerType !== "mouse" || window.matchMedia("(hover: hover)").matches;
 }
 
 /** Writes normalized pointer position (-0.5..0.5) into --px/--py on the element. */
@@ -19,7 +19,7 @@ export function usePointerDepth<T extends HTMLElement>() {
   const frame = useRef(0);
   const onPointerMove = useCallback((event: PointerEvent<T>) => {
     const el = ref.current;
-    if (!el || !canTilt()) return;
+    if (!el || !canTilt(event.pointerType)) return;
     const rect = el.getBoundingClientRect();
     const x = (event.clientX - rect.left) / rect.width - 0.5;
     const y = (event.clientY - rect.top) / rect.height - 0.5;
@@ -38,19 +38,18 @@ export function usePointerDepth<T extends HTMLElement>() {
     el.style.setProperty("--py", "0");
     delete el.dataset.active;
   }, []);
-  return { ref, onPointerMove, onPointerLeave };
+  return { ref, onPointerMove, onPointerDown: onPointerMove, onPointerLeave, onPointerUp: onPointerLeave, onPointerCancel: onPointerLeave };
 }
 
 type TiltCardProps = HTMLAttributes<HTMLDivElement> & { children: ReactNode; max?: number; glare?: boolean };
 
 /** A card that tilts toward the pointer with a soft specular glare. */
 export function TiltCard({ children, className = "", max = 8, glare = true, style, ...rest }: TiltCardProps) {
-  const { ref, onPointerMove, onPointerLeave } = usePointerDepth<HTMLDivElement>();
+  const { ref, ...handlers } = usePointerDepth<HTMLDivElement>();
   return (
     <div
       ref={ref}
-      onPointerMove={onPointerMove}
-      onPointerLeave={onPointerLeave}
+      {...handlers}
       className={`depth-tilt ${className}`}
       style={{ "--tilt-max": `${max}deg`, ...style } as CSSProperties}
       {...rest}
@@ -72,9 +71,9 @@ export function BrandMark({ size = "md" }: { size?: "sm" | "md" }) {
  * (highlight, signature, sticky note, toolbar) hovering at different depths.
  */
 export function DocumentStack({ compact = false }: { compact?: boolean }) {
-  const { ref, onPointerMove, onPointerLeave } = usePointerDepth<HTMLDivElement>();
+  const { ref, ...handlers } = usePointerDepth<HTMLDivElement>();
   return (
-    <div ref={ref} onPointerMove={onPointerMove} onPointerLeave={onPointerLeave} className={`depth-scene ${compact ? "depth-scene-compact" : ""}`} aria-hidden>
+    <div ref={ref} {...handlers} className={`depth-scene ${compact ? "depth-scene-compact" : ""}`} aria-hidden>
       <div className="depth-stage">
         <div className="depth-page depth-page-back" />
         <div className="depth-page depth-page-mid" />
@@ -116,6 +115,41 @@ export function DocumentStack({ compact = false }: { compact?: boolean }) {
         </div>
       </div>
       <div className="depth-floor" />
+    </div>
+  );
+}
+
+const orbitTiles = [
+  { icon: TextCursorInput, label: "Edit text", from: "#4c84ee", to: "#2457c0", edge: "#173f94", x: -74, y: -100, z: 70 },
+  { icon: Signature, label: "Sign", from: "#8a74f0", to: "#5f45d6", edge: "#43309f", x: 74, y: -66, z: 120 },
+  { icon: Highlighter, label: "Highlight", from: "#f2b84b", to: "#d9901a", edge: "#9c6408", x: -78, y: 58, z: 110 },
+  { icon: Stamp, label: "Watermark", from: "#34b47f", to: "#1c8a5f", edge: "#126044", x: 74, y: 96, z: 60 },
+];
+
+/** Onboarding scene: tool tiles floating at different depths around a page. */
+export function ToolOrbit() {
+  const { ref, ...handlers } = usePointerDepth<HTMLDivElement>();
+  return (
+    <div ref={ref} {...handlers} className="depth-scene depth-scene-orbit" aria-hidden>
+      <div className="depth-stage">
+        <div className="depth-page depth-page-orbit"><span className="block h-2 w-20 rounded-full bg-[#172033]" />{[92, 80, 88, 64, 84, 70].map((width, index) => <span key={index} className="mt-3 block h-1.5 rounded-full bg-slate-200" style={{ width: `${width}%` }} />)}</div>
+        {orbitTiles.map(tile => <span key={tile.label} className="depth-orbit-tile" style={{ transform: `translate3d(${tile.x}px, ${tile.y}px, ${tile.z}px)` }}><span className="depth-icon h-12 w-12" style={{ background: `linear-gradient(145deg, ${tile.from}, ${tile.to})`, "--icon-edge": tile.edge, transform: "none" } as CSSProperties}><tile.icon className="h-5 w-5" /></span><span className="mt-1.5 block whitespace-nowrap rounded-full bg-[#0f172a]/85 px-2 py-0.5 text-center text-[10px] font-semibold text-white shadow-[0_6px_14px_-6px_rgba(0,0,0,.7)]">{tile.label}</span></span>)}
+      </div>
+    </div>
+  );
+}
+
+/** Onboarding scene: a privacy vault — stacked glass layers sealed by a lock. */
+export function PrivacyVault() {
+  const { ref, ...handlers } = usePointerDepth<HTMLDivElement>();
+  return (
+    <div ref={ref} {...handlers} className="depth-scene depth-scene-orbit" aria-hidden>
+      <div className="depth-stage">
+        {[0, 1, 2, 3].map(index => <div key={index} className="depth-vault-layer" style={{ transform: `translate3d(0, ${-index * 14}px, ${index * 34}px)`, opacity: 0.55 + index * 0.15 }}><span className="h-1.5 w-1/2 rounded-full bg-white/50" /><span className="mt-2 h-1.5 w-1/3 rounded-full bg-white/30" /></div>)}
+        <span className="depth-vault-lock" style={{ transform: "translate3d(0, -40px, 170px)" }}><LockKeyhole className="h-8 w-8" /></span>
+        <span className="depth-orbit-badge" style={{ transform: "translate3d(-96px, 70px, 120px)" }}><ShieldCheck className="h-4 w-4 text-[#72d5a2]" />On-device</span>
+        <span className="depth-orbit-badge" style={{ transform: "translate3d(86px, -110px, 90px)" }}><PenLine className="h-4 w-4 text-[#8eb8ff]" />No public links</span>
+      </div>
     </div>
   );
 }

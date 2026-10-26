@@ -6,6 +6,7 @@ import { createRoot } from "react-dom/client";
 import superjson from "superjson";
 import App from "./App";
 import { startLogin } from "./const";
+import { API_BASE, getToken, isAppShell, loadStoredToken } from "./lib/native";
 import "./index.css";
 
 const queryClient = new QueryClient();
@@ -18,7 +19,10 @@ const redirectToLoginIfUnauthorized = (error: unknown) => {
 
   if (!isUnauthorized) return;
 
-  startLogin();
+  // The apps and this deployment use email/password accounts; Manus OAuth only when it is configured.
+  if (isAppShell()) window.history.pushState(null, "", "/signin");
+  else if (import.meta.env.VITE_OAUTH_PORTAL_URL) startLogin();
+  else if (!window.location.pathname.startsWith("/account")) window.location.assign("/account?mode=login");
 };
 
 queryClient.getQueryCache().subscribe(event => {
@@ -40,9 +44,14 @@ queryClient.getMutationCache().subscribe(event => {
 const trpcClient = trpc.createClient({
   links: [
     httpBatchLink({
-      url: "/api/trpc",
+      url: `${API_BASE}/api/trpc`,
       transformer: superjson,
       headers() {
+        // Apps authenticate with the stored bearer token only (never cookies).
+        if (isAppShell()) {
+          const appToken = getToken();
+          return appToken ? { Authorization: `Bearer ${appToken}` } : {};
+        }
         // Preview auto-login fallback: when the browser blocks iframe cookies
         // (Safari ITP / private browsing / WebView), the runtime mirrors the
         // session into sessionStorage so we can forward it as a Bearer token.
@@ -65,17 +74,25 @@ const trpcClient = trpc.createClient({
       fetch(input, init) {
         return globalThis.fetch(input, {
           ...(init ?? {}),
-          credentials: "include",
+          credentials: isAppShell() ? "omit" : "include",
         });
       },
     }),
   ],
 });
 
-createRoot(document.getElementById("root")!).render(
-  <trpc.Provider client={trpcClient} queryClient={queryClient}>
-    <QueryClientProvider client={queryClient}>
-      <App />
-    </QueryClientProvider>
-  </trpc.Provider>
-);
+async function bootstrap() {
+  if (isAppShell()) {
+    document.documentElement.classList.add("app-shell");
+    await loadStoredToken();
+  }
+  createRoot(document.getElementById("root")!).render(
+    <trpc.Provider client={trpcClient} queryClient={queryClient}>
+      <QueryClientProvider client={queryClient}>
+        <App />
+      </QueryClientProvider>
+    </trpc.Provider>
+  );
+}
+
+void bootstrap();

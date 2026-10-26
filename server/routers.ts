@@ -32,7 +32,12 @@ export const appRouter = router({
     // if you need to use socket.io, read and register route in server/_core/index.ts, all api should start with '/api/' so that the gateway can route correctly
   system: systemRouter,
   auth: router({
-    me: publicProcedure.query(opts => opts.ctx.user),
+    me: publicProcedure.query(opts => {
+      if (!opts.ctx.user) return null;
+      // Never send the password hash to the browser or apps.
+      const { passwordHash: _passwordHash, ...user } = opts.ctx.user;
+      return user;
+    }),
     nativeSignup: publicProcedure.input(nativeAccountInput.extend({ name: z.string().trim().min(2, "Enter your name.").max(120) })).mutation(async ({ ctx, input }) => {
       try {
         const user = await createNativeUser({ name: input.name, email: input.email, passwordHash: await hashPassword(input.password) });

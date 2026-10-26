@@ -5,7 +5,7 @@ import net from "net";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
 import { registerOAuthRoutes } from "./oauth";
 import { registerStorageProxy } from "./storageProxy";
-import { createMobileApiRouter } from "../api/v1";
+import { createMobileApiRouter, mobileCors } from "../api/v1";
 import { appRouter } from "../routers";
 import { createContext } from "./context";
 import { serveStatic, setupVite } from "./vite";
@@ -40,7 +40,8 @@ async function startServer() {
   app.use(express.urlencoded({ limit: "50mb", extended: true }));
   registerStorageProxy(app);
   registerOAuthRoutes(app);
-  // tRPC API
+  // tRPC API (the apps call it with bearer tokens from their WebView origin)
+  app.use("/api/trpc", mobileCors());
   app.use(
     "/api/trpc",
     createExpressMiddleware({
