@@ -310,13 +310,14 @@ body { font-family: var(--font-sans); }
 /* Isometric icon tile used in feature cards */
 .depth-icon { position: relative; display: grid; place-items: center; width: 3rem; height: 3rem; border-radius: 1rem; color: #fff; transform: translateZ(36px); box-shadow: inset 0 1px 0 rgba(255,255,255,.35), 0 4px 0 var(--icon-edge, #1f4aa3), 0 14px 22px -10px var(--icon-edge, #1f4aa3); }
 
+/* Phone/tablet sizing for the large hero scene only; compact scenes keep their own size. */
 @media (max-width: 1023px) {
-  .depth-scene { height: 400px; }
-  .depth-stage { transform: rotateX(12deg) rotateY(-14deg) rotateZ(2deg) scale(.86); }
+  .depth-scene:not(.depth-scene-compact) { height: 400px; }
+  .depth-scene:not(.depth-scene-compact):not(.depth-scene-orbit) .depth-stage { transform: rotateX(12deg) rotateY(-14deg) rotateZ(2deg) scale(.86); }
 }
 @media (max-width: 480px) {
-  .depth-scene { height: 340px; }
-  .depth-stage { transform: rotateX(12deg) rotateY(-12deg) rotateZ(2deg) scale(.7); }
+  .depth-scene:not(.depth-scene-compact) { height: 340px; }
+  .depth-scene:not(.depth-scene-compact):not(.depth-scene-orbit) .depth-stage { transform: rotateX(12deg) rotateY(-12deg) rotateZ(2deg) scale(.7); }
 }
 @media (prefers-reduced-motion: reduce) {
   .depth-tilt, .depth-stage, .depth-floor { transition: none; }
@@ -389,3 +390,7 @@ body { font-family: var(--font-sans); }
 .app-shell .editor-floating { bottom: calc(var(--app-safe-bottom) + .5rem); }
 .app-shell .editor-pages-mobile { top: calc(var(--app-safe-top) + 3.5rem); height: calc(100dvh - var(--app-safe-top) - 3.5rem); }
 .app-shell .editor-canvas { padding-bottom: calc(var(--app-safe-bottom) + 10rem); }
+
+/* Home hero: smaller 3D document, fully framed on the right. */
+.app-hero-scene .depth-scene-compact { height: 190px; }
+.app-hero-scene .depth-scene-compact .depth-stage { transform: rotateX(calc(14deg + var(--py) * -10deg)) rotateY(calc(-24deg + var(--px) * 16deg)) rotateZ(4deg) scale(.42); }

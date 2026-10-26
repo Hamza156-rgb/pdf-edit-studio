@@ -296,6 +296,7 @@ export default function PdfEditor() {
     launchActionRef.current = null;
     if (action === "watermark") void removeDocumentWatermarks();
     if (action === "pages") setShowPagesOnMobile(true);
+    if (action === "options") setShowToolSheet(true);
   });
 
   const saveToLibrary = async () => {

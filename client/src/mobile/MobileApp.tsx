@@ -8,7 +8,7 @@ import NotFound from "@/pages/NotFound";
 import PdfEditor from "@/pages/PdfEditor";
 import AuthScreen from "./AuthScreen";
 import Onboarding from "./Onboarding";
-import { AccountTab, HomeTab, LibraryTab } from "./Tabs";
+import { AccountTab, HomeTab, LibraryTab, ToolsTab } from "./Tabs";
 
 const ROOT_PATHS = new Set(["/", "/welcome"]);
 
@@ -41,6 +41,7 @@ export default function MobileApp() {
       <Route path="/signup"><AuthScreen mode="signup" onDone={() => { setOnboarded(true); setLocation("/"); }} /></Route>
       <Route path="/" component={HomeTab} />
       <Route path="/library" component={LibraryTab} />
+      <Route path="/tools" component={ToolsTab} />
       <Route path="/account" component={AccountTab} />
       <Route path="/editor" component={PdfEditor} />
       <Route path="/admin" component={Admin} />
