@@ -110,7 +110,7 @@ ion-tab-bar.app-tabbar {
   --background: #ffffff;
   --border: 1px solid rgba(226,232,240,.85);
   contain: none; overflow: visible; height: auto; min-height: 4.1rem;
-  padding-top: 4px; justify-content: center;
+  padding-top: 4px; padding-bottom: var(--app-safe-bottom); justify-content: center;
   box-shadow: 0 -12px 30px -22px rgba(15,23,42,.45);
   backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px);
 }
@@ -123,6 +123,13 @@ ion-tab-button.app-tab-button ion-label { margin-top: 2px; font-size: 10.5px; fo
 .app-tab-pill { display: grid; place-items: center; height: 32px; width: 48px; border-radius: 999px; transition: background-color .2s, transform .2s; }
 ion-tab-button.tab-selected .app-tab-pill { background: #eaf2ff; }
 .app-tab-fab { position: absolute; left: 50%; bottom: calc(var(--app-safe-bottom) + 9px); z-index: 20; display: flex; flex-direction: column; align-items: center; transform: translateX(-50%); }
+
+/* Ignore the phone's font-size setting inside the app so PDF text keeps its real size. */
+html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }
+
+/* Touch editing: soft tints instead of dashed boxes around every line. */
+.edit-line-target { outline: none; background: rgba(50,106,216,.09); border-radius: 3px; }
+.edit-line-target:active { background: rgba(50,106,216,.22); }
 
 /* Ionic alerts/action sheets in the app's type and colors. */
 ion-alert, ion-action-sheet { --ion-font-family: var(--font-sans); }

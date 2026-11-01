@@ -9,5 +9,7 @@ public class MainActivity extends BridgeActivity {
     public void onCreate(Bundle savedInstanceState) {
         registerPlugin(AppChromePlugin.class);
         super.onCreate(savedInstanceState);
+        // The page layout is sized in CSS; Android's font-size setting would otherwise inflate PDF text.
+        getBridge().getWebView().getSettings().setTextZoom(100);
     }
 }

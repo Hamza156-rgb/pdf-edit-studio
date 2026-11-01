@@ -194,6 +194,9 @@ export default function PdfEditor() {
   const redo = () => { const result = redoHistory(history, { pages, annotations }, future); if (!result) return; setHistory(result.history); setPages(result.current.pages); setAnnotations(result.current.annotations); setFuture(result.future); setSelectedId(null); setEditingId(null); };
   const deleteSelected = () => { if (!selectedId) return; commit(pages, annotations.filter(annotation => annotation.id !== selectedId)); setSelectedId(null); setEditingId(null); };
   const selected = annotations.find(annotation => annotation.id === selectedId) ?? null;
+  // On phones, text is edited in a bottom sheet with a full-size field instead of inline on the page.
+  const sheetEditing = platform.isApp;
+  const editingAnnotation = editingId ? annotations.find(annotation => annotation.id === editingId) ?? null : null;
   const activePage = pages.find(page => page.id === activePageId) ?? null;
   const activeIndex = pages.findIndex(page => page.id === activePageId);
 
@@ -351,7 +354,7 @@ export default function PdfEditor() {
       <aside className={`${showPagesOnMobile ? "editor-pages-mobile absolute inset-x-0 top-14 z-30 h-[calc(100vh-3.5rem)]" : "hidden"} min-h-0 border-r border-slate-200/80 bg-[#f8fafc] md:relative md:block md:h-full`}><PageRail pages={pages} sources={sources} activePageId={activePageId} onSelect={id => { setActivePageId(id); setSelectedId(null); setEditingId(null); setShowPagesOnMobile(false); }} sensors={sensors} onDragEnd={reorder} onRotate={rotatePage} onDuplicate={duplicatePage} onDelete={deletePage} onAdd={addBlankPage} /></aside>
       <div className="relative min-h-0 min-w-0">
         <main className="editor-canvas editor-canvas-bg relative h-full min-w-0 overflow-auto p-4 pb-36 md:p-8 md:pb-24">
-          {activePage && <PdfPageSurface page={activePage} source={sources.find(source => source.id === activePage.sourceId)} annotations={pageAnnotations} selectedId={selectedId} editingId={editingId} tool={tool} zoom={zoom} fitMode={fitMode} onPointerDown={onCanvasPointerDown} onPointerMove={onCanvasPointerMove} onPointerUp={onCanvasPointerUp} onSelect={setSelectedId} onMove={startMove} onResize={startResize} onStartEdit={id => { setSelectedId(id); setEditingId(id); }} onStopEdit={() => { setEditingId(null); finalizeSelectedUpdate(); }} onChangeText={(id, text) => updateAnnotation(id, { text })} onEditLine={editExistingLine} />}
+          {activePage && <PdfPageSurface page={activePage} source={sources.find(source => source.id === activePage.sourceId)} annotations={pageAnnotations} selectedId={selectedId} editingId={sheetEditing ? null : editingId} tool={tool} zoom={zoom} fitMode={fitMode} onPointerDown={onCanvasPointerDown} onPointerMove={onCanvasPointerMove} onPointerUp={onCanvasPointerUp} onSelect={setSelectedId} onMove={startMove} onResize={startResize} onStartEdit={id => { setSelectedId(id); setEditingId(id); }} onStopEdit={() => { setEditingId(null); finalizeSelectedUpdate(); }} onChangeText={(id, text) => updateAnnotation(id, { text })} onEditLine={editExistingLine} />}
         </main>
         <div className="editor-floating pointer-events-none absolute inset-x-0 bottom-3 z-10 flex flex-col items-center gap-2 px-3 md:bottom-5">
           <div className="editor-nav pointer-events-auto flex max-w-full items-center gap-0.5 overflow-x-auto rounded-2xl border border-white/70 bg-white/90 p-1 shadow-[0_18px_40px_-18px_rgba(23,32,51,.45)] backdrop-blur-xl">
@@ -383,6 +386,7 @@ export default function PdfEditor() {
         <ToolPanel {...toolPanelProps} hideTools />
       </div>
     </div>}
+    {sheetEditing && editingAnnotation && <TextEditSheet annotation={editingAnnotation} onChange={patch => updateAnnotation(editingAnnotation.id, patch)} onDone={() => { setEditingId(null); finalizeSelectedUpdate(); }} onRemove={() => { pendingEditRef.current = null; commit(pages, annotations.filter(annotation => annotation.id !== editingAnnotation.id)); setSelectedId(null); setEditingId(null); }} />}
     {loading && pages.length === 0 && <div className="fixed inset-0 z-50 grid place-items-center bg-[#172033]/25 backdrop-blur-sm"><div className="rounded-2xl bg-white px-7 py-6 text-center shadow-xl"><Loader2 className="mx-auto h-6 w-6 animate-spin text-[#326ad8]" /><p className="mt-3 font-medium">{loadingText}</p><p className="mt-1 text-sm text-slate-500">This stays in your browser session.</p></div></div>}
     {redactDialog && <div className="fixed inset-0 z-50 grid place-items-center bg-[#172033]/45 p-4"><div role="dialog" aria-modal="true" className="w-full max-w-md rounded-2xl bg-white p-6 shadow-2xl"><div className="grid h-11 w-11 place-items-center rounded-xl bg-red-50 text-red-600"><ShieldAlert className="h-5 w-5" /></div><h2 className="mt-5 font-display text-xl font-semibold tracking-[-.035em]">Apply permanent redactions?</h2><p className="mt-3 text-sm leading-6 text-slate-600">Applied redactions flatten the selected areas when you export, removing the source content from the resulting PDF. This action cannot be undone in the exported file.</p><div className="mt-6 flex justify-end gap-2"><Button variant="outline" onClick={() => setRedactDialog(false)}>Cancel</Button><Button className="bg-red-600 text-white hover:bg-red-700" onClick={applyRedactions}>Apply redactions</Button></div></div></div>}
   </div>;
@@ -466,7 +470,7 @@ function PdfPageSurface({ page, source, annotations, selectedId, editingId, tool
 
   return <div className="min-h-full min-w-max py-6">
     <div style={{ width }} className="mx-auto">
-      {tool === "edittext" && <div className="mb-3 flex w-0 min-w-full justify-center"><span className="inline-flex max-w-full items-center gap-2 rounded-2xl text-left sm:rounded-full border border-[#cfe0ff] bg-white/95 px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm">{lines === null ? <><Loader2 className="h-3.5 w-3.5 animate-spin text-[#326ad8]" />Finding text on this page…</> : lines.length ? <><TextCursorInput className="h-3.5 w-3.5 text-[#326ad8]" />Click any highlighted line to edit it</> : <><ShieldAlert className="h-3.5 w-3.5 text-amber-600" />No editable text here — it may be a scanned image. Use Whiteout + Add text.</>}</span></div>}
+      {tool === "edittext" && <div className="mb-3 flex w-0 min-w-full justify-center"><span className="inline-flex max-w-full items-center gap-2 rounded-2xl text-left sm:rounded-full border border-[#cfe0ff] bg-white/95 px-3 py-1.5 text-xs font-medium text-slate-600 shadow-sm">{lines === null ? <><Loader2 className="h-3.5 w-3.5 animate-spin text-[#326ad8]" />Finding text on this page…</> : lines.length ? <><TextCursorInput className="h-3.5 w-3.5 text-[#326ad8]" />{platform.isApp ? "Tap" : "Click"} any highlighted line to edit it</> : <><ShieldAlert className="h-3.5 w-3.5 text-amber-600" />No editable text here — it may be a scanned image. Use Whiteout + Add text.</>}</span></div>}
       <div ref={surfaceRef} data-page-canvas style={{ aspectRatio: String(aspect) }} className={`editor-paper relative w-full select-none overflow-hidden bg-white ${cursor}`} onPointerDown={onPointerDown} onPointerMove={onPointerMove} onPointerUp={onPointerUp}>
         <canvas ref={canvasRef} className="pointer-events-none absolute inset-0 h-full w-full" />
         {page.blank && <div className="absolute inset-0 bg-white" />}
@@ -590,3 +594,31 @@ function ToolPanel({ hideTools = false, tool, setTool, color, setColor, opacity,
 
 function Field({ label, children }: { label: string; children: React.ReactNode }) { return <label className="block"><p className="mb-2 text-xs font-medium text-slate-500">{label}</p>{children}</label>; }
 function Choice({ active, onClick, label }: { active: boolean; onClick: () => void; label: string }) { return <button onClick={onClick} className={`rounded-md px-2 py-1.5 text-xs font-medium ${active ? "bg-white text-[#326ad8] shadow-sm" : "text-slate-500 hover:bg-white/70"}`}>{label}</button>; }
+
+function TextEditSheet({ annotation, onChange, onDone, onRemove }: { annotation: Annotation; onChange: (patch: Partial<Annotation>) => void; onDone: () => void; onRemove: () => void }) {
+  const size = annotation.fontSize ?? 16;
+  const setSize = (next: number) => onChange({ fontSize: Math.max(6, Math.min(96, Math.round(next))) });
+  const toggle = "grid h-10 min-w-10 place-items-center rounded-xl border px-3 text-sm transition";
+  return <div className="fixed inset-0 z-50">
+    {/* Closes on a fresh press: the tap that opened the sheet would otherwise land here as a click. */}
+    <div aria-hidden onPointerDown={onDone} className="absolute inset-0 bg-[#172033]/25" />
+    <div role="dialog" aria-modal="true" aria-label="Edit text" className="depth-rise app-safe-bottom absolute inset-x-0 bottom-0 rounded-t-[28px] bg-white px-4 pb-4 pt-2 shadow-[0_-24px_60px_-20px_rgba(23,32,51,.45)]">
+      <span className="mx-auto block h-1 w-10 rounded-full bg-slate-200" />
+      <div className="mt-3 flex items-center justify-between">
+        <span className="text-sm font-semibold">{annotation.replacesLine ? "Edit text" : "Add text"}</span>
+        <button type="button" onClick={onDone} className="h-9 rounded-full bg-[#326ad8] px-5 text-sm font-semibold text-white">Done</button>
+      </div>
+      <textarea autoFocus value={annotation.text ?? ""} onChange={event => onChange({ text: event.target.value })} onFocus={event => { if (!annotation.replacesLine && annotation.text === "Type here") event.currentTarget.select(); }} rows={3} spellCheck className="mt-3 block w-full resize-none rounded-2xl border border-slate-200 bg-slate-50 px-3.5 py-3 text-base leading-6 text-slate-900 outline-none focus:border-[#326ad8] focus:bg-white" style={{ fontFamily: cssFont(annotation), fontWeight: annotation.bold ? 700 : 400, fontStyle: annotation.italic ? "italic" : "normal" }} />
+      <div className="mt-3 flex items-center gap-2">
+        <div className="flex items-center rounded-xl border border-slate-200">
+          <button type="button" aria-label="Smaller text" onClick={() => setSize(size - 1)} className="grid h-10 w-10 place-items-center text-slate-600"><Minus className="h-4 w-4" /></button>
+          <span className="w-10 text-center text-sm font-semibold tabular-nums">{Math.round(size)}</span>
+          <button type="button" aria-label="Larger text" onClick={() => setSize(size + 1)} className="grid h-10 w-10 place-items-center text-slate-600"><Plus className="h-4 w-4" /></button>
+        </div>
+        <button type="button" aria-pressed={!!annotation.bold} onClick={() => onChange({ bold: !annotation.bold })} className={`${toggle} font-bold ${annotation.bold ? "border-[#326ad8] bg-[#eaf2ff] text-[#326ad8]" : "border-slate-200 text-slate-600"}`}>B</button>
+        <button type="button" aria-pressed={!!annotation.italic} onClick={() => onChange({ italic: !annotation.italic })} className={`${toggle} italic ${annotation.italic ? "border-[#326ad8] bg-[#eaf2ff] text-[#326ad8]" : "border-slate-200 text-slate-600"}`}>I</button>
+        <button type="button" onClick={onRemove} className="ml-auto flex h-10 items-center gap-1.5 rounded-xl px-3 text-sm font-medium text-red-600">{annotation.replacesLine ? <><RotateCcw className="h-4 w-4" />Restore</> : <><Trash2 className="h-4 w-4" />Delete</>}</button>
+      </div>
+    </div>
+  </div>;
+}
