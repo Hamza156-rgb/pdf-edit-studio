@@ -6,7 +6,7 @@ const liveReloadUrl = process.env.CAP_SERVER_URL;
 const config: CapacitorConfig = {
   appId: "com.editly.app",
   appName: "Editly",
-  webDir: "dist/public",
+  webDir: "dist",
   backgroundColor: "#0f172a",
   ...(liveReloadUrl ? { server: { url: liveReloadUrl, cleartext: true } } : {}),
   plugins: {

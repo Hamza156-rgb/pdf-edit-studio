@@ -6,7 +6,7 @@ import { addHistorySnapshot, redoHistory, undoHistory } from "@/lib/editorHistor
 import { clearPdfDocumentCache, exportEditedPdf, getPdfPage, inspectPdf, renderPdfPage, TEXT_LINE_HEIGHT, triggerPdfDownload, validatePdfFile } from "@/lib/pdf";
 import { extractTextLines, sampleColors, TextLine } from "@/lib/pdfText";
 import { removeWatermarks } from "@/lib/watermark";
-import { deliverPdf, haptic, isAppShell, setStatusBar } from "@/lib/native";
+import { platform } from "@/lib/platform";
 import { DashboardDensity, loadDashboardDensity, saveDashboardDensity, toggleDashboardDensity } from "@/lib/dashboardDensity";
 import { clearEditorSession, loadEditorSession, saveEditorSession, saveLibraryDocument } from "@/lib/session";
 import { consumeStagedEditorSession, consumeStagedPdfFile } from "@/lib/stagedFile";
@@ -101,8 +101,8 @@ export default function PdfEditor() {
   const initialImportHandledRef = useRef(false);
   const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 6 } }));
 
-  const setTool = (next: ToolName) => { haptic("light"); setToolState(next); setEditingId(null); if (next !== "select") setSelectedId(null); };
-  useEffect(() => { setStatusBar("light", "#ffffff"); }, []);
+  const setTool = (next: ToolName) => { platform.haptic("light"); setToolState(next); setEditingId(null); if (next !== "select") setSelectedId(null); };
+  useEffect(() => { platform.setStatusBar("light", "#ffffff"); }, []);
 
   const commit = useCallback((nextPages: EditorPage[], nextAnnotations: Annotation[], label?: string) => {
     setHistory(current => addHistorySnapshot(current, { pages, annotations }));
@@ -263,7 +263,7 @@ export default function PdfEditor() {
   const addBlankPage = () => { const blank: EditorPage = { id: uid(), rotation: 0, width: 595, height: 842, label: "Blank page", blank: true }; commit([...pages, blank], annotations, "Blank page added"); setActivePageId(blank.id); };
   const reorder = (event: DragEndEvent) => { if (!event.over || event.active.id === event.over.id) return; const oldIndex = pages.findIndex(page => page.id === event.active.id); const newIndex = pages.findIndex(page => page.id === event.over?.id); commit(arrayMove(pages, oldIndex, newIndex), annotations); };
   const applyRedactions = () => { const count = annotations.filter(annotation => annotation.type === "redact" && annotation.status === "pending").length; if (!count) return toast.info("Mark an area before applying a redaction."); commit(pages, annotations.map(annotation => annotation.type === "redact" && annotation.status === "pending" ? { ...annotation, status: "applied" } : annotation), `${count} redaction${count === 1 ? "" : "s"} applied`); setRedactDialog(false); };
-  const handleDownload = async (singlePage = false) => { if (!pages.length) return; setExporting(true); try { const bytes = await exportEditedPdf({ sources, pages, annotations, onlyPageId: singlePage ? activePageId ?? undefined : undefined }); await deliverPdf(bytes, `${fileName.replace(/[^a-z0-9]+/gi, "-").replace(/(^-|-$)/g, "").toLowerCase() || "edited-document"}${singlePage ? "-page" : "-edited"}.pdf`, triggerPdfDownload); haptic("success"); toast.success(singlePage ? "Page extracted as a new PDF." : "Your edited PDF is ready."); } catch (error) { console.error("[PDF export]", error); toast.error(error instanceof Error ? error.message : "We could not export this PDF."); } finally { setExporting(false); } };
+  const handleDownload = async (singlePage = false) => { if (!pages.length) return; setExporting(true); try { const bytes = await exportEditedPdf({ sources, pages, annotations, onlyPageId: singlePage ? activePageId ?? undefined : undefined }); const exportName = `${fileName.replace(/[^a-z0-9]+/gi, "-").replace(/(^-|-$)/g, "").toLowerCase() || "edited-document"}${singlePage ? "-page" : "-edited"}.pdf`; if (platform.savePdf) await platform.savePdf(bytes, exportName); else triggerPdfDownload(bytes, exportName); platform.haptic("success"); toast.success(singlePage ? "Page extracted as a new PDF." : "Your edited PDF is ready."); } catch (error) { console.error("[PDF export]", error); toast.error(error instanceof Error ? error.message : "We could not export this PDF."); } finally { setExporting(false); } };
 
   const removeDocumentWatermarks = async () => {
     const usedSourceIds = new Set(pages.map(page => page.sourceId).filter(Boolean));
@@ -337,7 +337,7 @@ export default function PdfEditor() {
       <div className="hidden items-center gap-0.5 rounded-xl border border-slate-200 bg-[#f8fafc] p-0.5 lg:flex">
         <HeaderButton icon={Undo2} label="Undo (Ctrl/Cmd + Z)" onClick={undo} disabled={!history.length} />
         <HeaderButton icon={Redo2} label="Redo (Ctrl/Cmd + Shift + Z)" onClick={redo} disabled={!future.length} />
-        {!isAppShell() && <><span className="mx-1 h-5 w-px bg-slate-200" />
+        {!platform.isApp && <><span className="mx-1 h-5 w-px bg-slate-200" />
         <HeaderButton icon={Maximize2} label="Fullscreen" onClick={() => document.documentElement.requestFullscreen?.()} /></>}
       </div>
       <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">

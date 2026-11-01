@@ -1,14 +1,15 @@
 import { DocumentStack } from "@/components/Depth";
-import { ApiRequestError, ApiSession, haptic, restApi, setStatusBar, storeToken } from "@/lib/native";
+import { IonContent, IonPage, useIonRouter, useIonViewWillEnter } from "@ionic/react";
+import { ApiRequestError, ApiSession, haptic, restApi, setStatusBar, storeToken } from "../lib/native";
 import { trpc } from "@/lib/trpc";
 import { ChevronLeft, Eye, EyeOff, Loader2, LockKeyhole, Mail, UserRound } from "lucide-react";
 import { FormEvent, ReactNode, useEffect, useState } from "react";
-import { useLocation } from "wouter";
 
 type Mode = "signin" | "signup";
 
-export default function AuthScreen({ mode, onDone }: { mode: Mode; onDone: () => void }) {
-  const [, setLocation] = useLocation();
+export default function AuthScreen({ mode }: { mode: Mode }) {
+  const router = useIonRouter();
+  const onDone = () => router.navigateRoot("/tabs/home");
   const utils = trpc.useUtils();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -19,7 +20,8 @@ export default function AuthScreen({ mode, onDone }: { mode: Mode; onDone: () =>
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const signup = mode === "signup";
 
-  useEffect(() => { setStatusBar("dark"); setError(null); setFieldErrors({}); }, [mode]);
+  useIonViewWillEnter(() => setStatusBar("dark"));
+  useEffect(() => { setError(null); setFieldErrors({}); }, [mode]);
 
   const submit = async (event: FormEvent) => {
     event.preventDefault();
@@ -40,11 +42,12 @@ export default function AuthScreen({ mode, onDone }: { mode: Mode; onDone: () =>
   };
 
   return (
-    <div className="app-screen relative flex min-h-[100dvh] flex-col overflow-hidden bg-[#0f172a]">
+    <IonPage><IonContent className="app-dark-content">
+    <div className="app-screen relative flex min-h-full flex-col overflow-hidden bg-[#0f172a]">
       <div className="depth-grid depth-grid-dark" />
       <div className="pointer-events-none absolute -right-24 top-10 h-72 w-72 rounded-full bg-[#326ad8]/40 blur-[90px]" />
       <header className="app-safe-top relative z-10 flex items-center px-3 pt-2">
-        <button type="button" onClick={() => window.history.length > 1 ? window.history.back() : setLocation("/welcome")} aria-label="Back" className="grid h-11 w-11 place-items-center rounded-full text-white active:bg-white/10"><ChevronLeft className="h-6 w-6" /></button>
+        <button type="button" onClick={() => router.canGoBack() ? router.goBack() : router.navigateRoot("/welcome")} aria-label="Back" className="grid h-11 w-11 place-items-center rounded-full text-white active:bg-white/10"><ChevronLeft className="h-6 w-6" /></button>
       </header>
       <div className="app-auth-scene relative z-0 -mb-16 -mt-10 h-[230px] shrink-0"><DocumentStack compact /></div>
 
@@ -53,7 +56,7 @@ export default function AuthScreen({ mode, onDone }: { mode: Mode; onDone: () =>
         <p className="mt-1.5 text-[15px] leading-6 text-slate-500">{signup ? "Keep your document activity in a private workspace." : "Log in to pick up where you left off."}</p>
 
         <div className="mt-6 grid grid-cols-2 rounded-2xl bg-slate-200/70 p-1" role="tablist">
-          {(["signin", "signup"] as const).map(option => <button key={option} type="button" role="tab" aria-selected={mode === option} onClick={() => { haptic("light"); setLocation(option === "signin" ? "/signin" : "/signup", { replace: true }); }} className={`rounded-xl py-2.5 text-sm font-semibold transition ${mode === option ? "bg-white text-[#172033] shadow-[0_2px_0_rgba(23,32,51,.06),0_8px_16px_-10px_rgba(23,32,51,.4)]" : "text-slate-500"}`}>{option === "signin" ? "Log in" : "Sign up"}</button>)}
+          {(["signin", "signup"] as const).map(option => <button key={option} type="button" role="tab" aria-selected={mode === option} onClick={() => { haptic("light"); router.push(option === "signin" ? "/signin" : "/signup", "none", "replace"); }} className={`rounded-xl py-2.5 text-sm font-semibold transition ${mode === option ? "bg-white text-[#172033] shadow-[0_2px_0_rgba(23,32,51,.06),0_8px_16px_-10px_rgba(23,32,51,.4)]" : "text-slate-500"}`}>{option === "signin" ? "Log in" : "Sign up"}</button>)}
         </div>
 
         <form onSubmit={submit} className="mt-6 space-y-4" noValidate>
@@ -72,6 +75,7 @@ export default function AuthScreen({ mode, onDone }: { mode: Mode; onDone: () =>
         </div>
       </main>
     </div>
+    </IonContent></IonPage>
   );
 }
 
