@@ -1,9 +1,9 @@
 {
-  "name": "editly-mobile",
+  "name": "inklyne-mobile",
   "private": true,
   "version": "1.0.0",
   "type": "module",
-  "description": "Editly mobile app (Ionic React + Capacitor). Shares the editor and API client with the website in ../client.",
+  "description": "Inklyne mobile app (Ionic React + Capacitor). Shares the editor and API client with the website in ../client.",
   "scripts": {
     "dev": "vite",
     "build": "vite build && cap sync",
@@ -11,7 +11,7 @@
     "android": "vite build && cap sync android && cap open android",
     "ios": "vite build && cap sync ios && cap open ios",
     "apk": "vite build && cap sync android && cd android && ./gradlew assembleDebug",
-    "assets": "npx @capacitor/assets@3.0.5 generate --ios --android --iconBackgroundColor \"#0f172a\" --splashBackgroundColor \"#0f172a\""
+    "assets": "npx @capacitor/assets@3.0.5 generate --ios --android --iconBackgroundColor \"#121d47\" --splashBackgroundColor \"#0f172a\" && cd .. && python3 brand/compress_pngs.py"
   },
   "dependencies": {
     "@capacitor/android": "8.5.3",

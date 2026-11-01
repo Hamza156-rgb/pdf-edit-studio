@@ -1,5 +1,4 @@
-import { FilePenLine } from "lucide-react";
-import { CSSProperties, HTMLAttributes, PointerEvent, ReactNode, useCallback, useRef } from "react";
+import { CSSProperties, HTMLAttributes, PointerEvent, ReactNode, useCallback, useId, useRef } from "react";
 
 /**
  * Lightweight CSS-3D primitives. Everything is driven by CSS custom properties so
@@ -60,10 +59,34 @@ export function TiltCard({ children, className = "", max = 8, glare = true, styl
   );
 }
 
-export function BrandMark({ size = "md" }: { size?: "sm" | "md" }) {
-  const box = size === "sm" ? "h-7 w-7 rounded-lg" : "h-9 w-9 rounded-xl";
-  const icon = size === "sm" ? "h-4 w-4" : "h-5 w-5";
-  return <span className={`brand-mark grid ${box} place-items-center text-white`}><FilePenLine className={icon} /></span>;
+/**
+ * The Inklyne mark: a tilted page whose ink line runs past its edge into an ink drop.
+ * Source artwork: brand/inklyne-icon.svg. Gradient ids are per-instance so hidden copies
+ * (e.g. inactive Ionic pages) never break the visible one.
+ */
+export function BrandMark({ size = "md" }: { size?: "sm" | "md" | "lg" }) {
+  const id = useId().replace(/[^a-zA-Z0-9]/g, "");
+  const px = size === "sm" ? 28 : size === "lg" ? 56 : 36;
+  return (
+    <svg width={px} height={px} viewBox="0 0 1024 1024" role="img" aria-label="Inklyne" className="brand-mark shrink-0" style={{ borderRadius: "22.5%" }}>
+      <defs>
+        <linearGradient id={`${id}bg`} x1="0" y1="0" x2="1" y2="1"><stop offset="0" stopColor="#1d3170" /><stop offset=".55" stopColor="#121d47" /><stop offset="1" stopColor="#0a1129" /></linearGradient>
+        <radialGradient id={`${id}glow`} cx=".26" cy=".18" r=".8"><stop offset="0" stopColor="#5a85ff" stopOpacity=".55" /><stop offset="1" stopColor="#5a85ff" stopOpacity="0" /></radialGradient>
+        <linearGradient id={`${id}page`} x1="0" y1="0" x2="0" y2="1"><stop offset="0" stopColor="#ffffff" /><stop offset="1" stopColor="#dfe7f7" /></linearGradient>
+        <linearGradient id={`${id}ink`} gradientUnits="userSpaceOnUse" x1="300" y1="0" x2="860" y2="0"><stop offset="0" stopColor="#3b6cf0" /><stop offset=".6" stopColor="#6a5cff" /><stop offset="1" stopColor="#a77bff" /></linearGradient>
+      </defs>
+      <rect width="1024" height="1024" rx="230" fill={`url(#${id}bg)`} />
+      <rect width="1024" height="1024" rx="230" fill={`url(#${id}glow)`} />
+      <g transform="rotate(-7 500 500)">
+        <path d="M300 200h290l130 130v420a46 46 0 0 1-46 46H300a46 46 0 0 1-46-46V246a46 46 0 0 1 46-46z" fill={`url(#${id}page)`} />
+        <path d="M590 200v96a34 34 0 0 0 34 34h96z" fill="#bccbec" />
+        <rect x="320" y="340" width="200" height="32" rx="16" fill="#b6c5e6" />
+        <rect x="320" y="408" width="290" height="32" rx="16" fill="#d0dbf0" />
+      </g>
+      <path d="M318 642c34-78 76-110 104-86s-10 104 22 106 56-96 92-94 12 90 50 88 70-64 130-64 92 30 116 30" fill="none" stroke={`url(#${id}ink)`} strokeWidth="38" strokeLinecap="round" strokeLinejoin="round" />
+      <circle cx="836" cy="622" r="36" fill="#a77bff" />
+    </svg>
+  );
 }
 
 /**

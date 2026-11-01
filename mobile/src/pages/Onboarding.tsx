@@ -6,7 +6,7 @@ import { ArrowRight } from "lucide-react";
 import { useRef, useState } from "react";
 
 const slides = [
-  { scene: <DocumentStack />, eyebrow: "Welcome to Editly", title: "Edit any PDF, right in your pocket.", copy: "Open a document, rewrite its text, add notes, and export a real PDF — all from your phone." },
+  { scene: <DocumentStack />, eyebrow: "Welcome to Inklyne", title: "Edit any PDF, right in your pocket.", copy: "Open a document, rewrite its text, add notes, and export a real PDF — all from your phone." },
   { scene: <ToolOrbit />, eyebrow: "Every tool you need", title: "Sign, highlight, redact, and more.", copy: "Edit existing text, place signatures, remove watermarks, and reorganize pages with a tap." },
   { scene: <PrivacyVault />, eyebrow: "Private by design", title: "Your files stay on your device.", copy: "Documents are processed locally. Your account only keeps names and sizes — never the PDF itself." },
 ];
@@ -37,7 +37,7 @@ export default function Onboarding() {
       <div className="pointer-events-none absolute -right-32 bottom-40 h-[320px] w-[320px] rounded-full bg-[#6b5ce7]/25 blur-[100px]" />
 
       <header className="app-safe-top relative z-10 flex items-center justify-between px-5 pt-3">
-        <span className="flex items-center gap-2 text-sm font-semibold"><BrandMark size="sm" />Editly</span>
+        <span className="flex items-center gap-2 text-sm font-semibold"><BrandMark size="sm" />Inklyne</span>
         {!last && <button type="button" onClick={() => void finish("/tabs/home")} className="rounded-full px-3 py-2 text-sm font-medium text-white/70 active:bg-white/10">Skip</button>}
       </header>
 

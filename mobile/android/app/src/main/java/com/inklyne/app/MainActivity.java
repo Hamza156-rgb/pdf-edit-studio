@@ -1,4 +1,4 @@
-package com.editly.app;
+package com.inklyne.app;
 
 import android.os.Bundle;
 import com.getcapacitor.BridgeActivity;

@@ -25,7 +25,7 @@ export function TabPage({ title, subtitle, showAccountButton = true, onRefresh, 
         <div className="app-content flex h-14 items-center gap-2.5">
           <BrandMark size="sm" />
           <div className="relative h-full min-w-0 flex-1">
-            <span className={`absolute inset-0 flex items-center font-display text-[17px] font-semibold tracking-[-.03em] transition duration-300 ${scrolled ? "-translate-y-2 opacity-0" : "opacity-100"}`}>Editly</span>
+            <span className={`absolute inset-0 flex items-center font-display text-[17px] font-semibold tracking-[-.03em] transition duration-300 ${scrolled ? "-translate-y-2 opacity-0" : "opacity-100"}`}>Inklyne</span>
             <span aria-hidden={!scrolled} className={`absolute inset-0 flex items-center truncate font-display text-[17px] font-semibold tracking-[-.03em] transition duration-300 ${scrolled ? "opacity-100" : "translate-y-2 opacity-0"}`}>{title}</span>
           </div>
           {showAccountButton && (

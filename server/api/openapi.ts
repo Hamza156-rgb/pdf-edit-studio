@@ -10,9 +10,9 @@ const idParameter = { name: "id", in: "path", required: true, schema: { type: "i
 export const openApiDocument = {
   openapi: "3.1.0",
   info: {
-    title: "Editly Mobile API",
+    title: "Inklyne API",
     version: "1.0.0",
-    description: "REST API for the Editly mobile apps. Authenticate with `Authorization: Bearer <token>` from /auth/login or /auth/signup. Tokens last 30 days; call /auth/refresh to extend. Documents are metadata only — PDF bytes stay on the device.",
+    description: "REST API for the Inklyne mobile apps. Authenticate with `Authorization: Bearer <token>` from /auth/login or /auth/signup. Tokens last 30 days; call /auth/refresh to extend. Documents are metadata only — PDF bytes stay on the device.",
   },
   servers: [{ url: "/api/v1" }],
   components: {

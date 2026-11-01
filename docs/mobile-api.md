@@ -1,4 +1,4 @@
-# Editly Mobile API (v1)
+# Inklyne API (v1)
 
 REST API for the iOS/Android apps (Capacitor or Ionic React). Base path: `/api/v1`.
 The machine-readable spec is served at `GET /api/v1/openapi.json` (OpenAPI 3.1) — import it into Postman/Insomnia or generate a typed client from it.
@@ -10,7 +10,7 @@ The machine-readable spec is served at `GET /api/v1/openapi.json` (OpenAPI 3.1) 
    { "token": "eyJ…", "tokenType": "Bearer", "expiresAt": "2026-11-18T10:00:00.000Z", "user": { "id": 1, "name": "Ayesha", "email": "ayesha@example.com", "role": "user", "createdAt": "…" } }
    ```
 2. Send it on every request: `Authorization: Bearer <token>`.
-3. Tokens last 30 days. Call `POST /auth/refresh` (with the current token) to get a fresh one; the Editly app does this
+3. Tokens last 30 days. Call `POST /auth/refresh` (with the current token) to get a fresh one; the Inklyne app does this
    at launch and on resume whenever its token is older than 12 hours, so active users stay signed in.
 4. Logout = delete the stored token (`POST /auth/logout` is provided for symmetry and returns 204).
 

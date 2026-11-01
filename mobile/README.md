@@ -1,4 +1,4 @@
-# Editly mobile (Ionic React + Capacitor)
+# Inklyne mobile (Ionic React + Capacitor)
 
 The iOS and Android apps. Built with **Ionic React 9** on **Capacitor 8**, React 19 and Vite. It runs inside a native
 WebView. It shares the PDF editor, UI kit, and API client with the website in `../client`, and talks to the same
@@ -75,7 +75,7 @@ From the repo root the same commands are available as `pnpm mobile:dev`, `pnpm m
 - `.env.production` → `VITE_API_BASE_URL` for release builds. **Replace the placeholder with your HTTPS server.**
 - `API_PROXY_TARGET` (dev only) → where `pnpm dev` proxies `/api` (default `http://localhost:3000`).
 - Debug Android builds allow plain HTTP to `localhost`/`10.0.2.2` only (`android/app/src/debug`); release builds are HTTPS-only.
-- App id `com.editly.app` lives in `capacitor.config.ts`; change it before the first store upload.
+- App id `com.inklyne.app` lives in `capacitor.config.ts`; change it before the first store upload.
 
 ## Notes
 

@@ -36,9 +36,9 @@ export default function Home() {
     <div className="min-h-screen overflow-x-hidden bg-[#fbfaf8] text-[#172033]">
       <header className="sticky top-0 z-40 border-b border-white/60 bg-[#fbfaf8]/75 backdrop-blur-xl">
         <nav className="mx-auto flex h-[72px] max-w-[1280px] items-center justify-between px-4 sm:px-5 lg:px-8">
-          <button onClick={() => setLocation("/")} className="flex items-center gap-2.5 text-left" aria-label="Editly home">
+          <button onClick={() => setLocation("/")} className="flex items-center gap-2.5 text-left" aria-label="Inklyne home">
             <BrandMark />
-            <span className="font-display text-[17px] font-semibold tracking-[-0.03em]">Editly</span>
+            <span className="font-display text-[17px] font-semibold tracking-[-0.03em]">Inklyne</span>
           </button>
           <div className="hidden items-center gap-1 rounded-full border border-slate-200/80 bg-white/70 p-1 text-sm font-medium text-slate-600 shadow-sm md:flex">
             {[["#tools", "Tools"], ["#how", "How it works"], ["#privacy", "Privacy"], ["#faq", "FAQ"]].map(([href, label]) => <a key={href} href={href} className="rounded-full px-3.5 py-1.5 transition hover:bg-[#f1f5fb] hover:text-[#172033]">{label}</a>)}
@@ -190,7 +190,7 @@ export default function Home() {
           </div>
         </section>
       </main>
-      <footer className="border-t border-slate-200 bg-[#fbfaf8]"><div className="mx-auto flex max-w-[1280px] flex-col gap-5 px-4 py-8 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:px-5 lg:px-8"><div className="flex items-center gap-2 font-medium text-[#172033]"><BrandMark size="sm" /> Editly</div><p>Private, practical PDF editing.</p><div className="flex gap-5"><a href="#privacy" className="hover:text-[#172033]">Privacy</a><a href="#faq" className="hover:text-[#172033]">Help</a></div></div></footer>
+      <footer className="border-t border-slate-200 bg-[#fbfaf8]"><div className="mx-auto flex max-w-[1280px] flex-col gap-5 px-4 py-8 text-sm text-slate-500 sm:flex-row sm:items-center sm:justify-between sm:px-5 lg:px-8"><div className="flex items-center gap-2 font-medium text-[#172033]"><BrandMark size="sm" /> Inklyne</div><p>Private, practical PDF editing.</p><div className="flex gap-5"><a href="#privacy" className="hover:text-[#172033]">Privacy</a><a href="#faq" className="hover:text-[#172033]">Help</a></div></div></footer>
     </div>
   );
 }

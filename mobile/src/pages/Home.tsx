@@ -42,7 +42,7 @@ export default function Home() {
       {!user && (
         <button type="button" onClick={() => router.push("/signup")} className="app-press mt-4 flex w-full items-center gap-3 rounded-2xl border border-[#d6e5ff] bg-[linear-gradient(150deg,#f7fbff,#eaf2ff)] p-4 text-left">
           <span className="grid h-10 w-10 shrink-0 place-items-center rounded-xl bg-[#326ad8] text-white shadow-[0_3px_0_#1f4aa3]"><CloudOff className="h-5 w-5" /></span>
-          <span className="min-w-0 flex-1"><span className="block text-sm font-semibold">You're using Editly as a guest</span><span className="block text-[13px] text-slate-500">Create a free account to keep document activity.</span></span>
+          <span className="min-w-0 flex-1"><span className="block text-sm font-semibold">You're using Inklyne as a guest</span><span className="block text-[13px] text-slate-500">Create a free account to keep document activity.</span></span>
           <ChevronRight className="h-5 w-5 text-slate-400" />
         </button>
       )}

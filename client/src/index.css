@@ -258,7 +258,7 @@ body { font-family: var(--font-sans); }
  * Depth system: CSS-only 3D used across marketing, account, and dashboard views.
  * Pointer position arrives as --px/--py (-0.5..0.5) from usePointerDepth().
  * ------------------------------------------------------------------------- */
-.brand-mark { background: linear-gradient(145deg, #2b3b5c 0%, #172033 60%, #0d1424 100%); box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 6px 14px -4px rgba(23,32,51,.45); }
+.brand-mark { box-shadow: 0 6px 14px -5px rgba(15,23,42,.5); }
 
 .depth-btn { position: relative; box-shadow: inset 0 1px 0 rgba(255,255,255,.14), 0 1px 0 #0b1120, 0 10px 22px -10px rgba(23,32,51,.65); transition: transform .25s cubic-bezier(.23,1,.32,1), box-shadow .25s cubic-bezier(.23,1,.32,1), background-color .2s; }
 .depth-btn:hover { transform: translateY(-1px); box-shadow: inset 0 1px 0 rgba(255,255,255,.18), 0 2px 0 #0b1120, 0 16px 28px -12px rgba(23,32,51,.7); }

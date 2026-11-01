@@ -4,8 +4,8 @@ import type { CapacitorConfig } from "@capacitor/cli";
 const liveReloadUrl = process.env.CAP_SERVER_URL;
 
 const config: CapacitorConfig = {
-  appId: "com.editly.app",
-  appName: "Editly",
+  appId: "com.inklyne.app",
+  appName: "Inklyne",
   webDir: "dist",
   backgroundColor: "#0f172a",
   ...(liveReloadUrl ? { server: { url: liveReloadUrl, cleartext: true } } : {}),

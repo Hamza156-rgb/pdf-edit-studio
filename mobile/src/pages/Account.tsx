@@ -39,7 +39,7 @@ export default function Account() {
       ) : (
         <div className="relative overflow-hidden rounded-[28px] bg-[#172033] p-6 text-white">
           <div className="depth-grid depth-grid-dark" />
-          <div className="relative"><h2 className="font-display text-2xl font-semibold tracking-[-.04em]">Make Editly yours</h2><p className="mt-2 text-sm leading-6 text-slate-300">Sign in to keep a private record of your document activity. Editing stays available as a guest.</p>
+          <div className="relative"><h2 className="font-display text-2xl font-semibold tracking-[-.04em]">Make Inklyne yours</h2><p className="mt-2 text-sm leading-6 text-slate-300">Sign in to keep a private record of your document activity. Editing stays available as a guest.</p>
             <div className="mt-5 grid grid-cols-2 gap-2"><button type="button" onClick={() => router.push("/signup")} className="app-press rounded-2xl bg-white py-3.5 text-sm font-semibold text-[#172033] shadow-[0_3px_0_#c7d4ea]">Create account</button><button type="button" onClick={() => router.push("/signin")} className="app-press rounded-2xl border border-white/15 bg-white/[.07] py-3.5 text-sm font-semibold"><LogIn className="mr-1.5 inline h-4 w-4" />Log in</button></div>
           </div>
         </div>
@@ -64,7 +64,7 @@ export default function Account() {
         {user && <SettingRow icon={LogOut} label="Sign out" tone="danger" onClick={() => void signOut()} />}
       </section>
 
-      <div className="mt-8 flex flex-col items-center gap-2 text-center text-xs text-slate-400"><BrandMark size="sm" /><span>Editly · {version}</span></div>
+      <div className="mt-8 flex flex-col items-center gap-2 text-center text-xs text-slate-400"><BrandMark size="sm" /><span>Inklyne · {version}</span></div>
     </TabPage>
   );
 }

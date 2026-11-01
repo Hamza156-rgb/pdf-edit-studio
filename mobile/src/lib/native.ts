@@ -52,7 +52,7 @@ export async function restApi<T>(path: string, init: RequestInit = {}): Promise<
       headers: { "Content-Type": "application/json", ...(token ? { Authorization: `Bearer ${token}` } : {}), ...(init.headers ?? {}) },
     });
   } catch {
-    throw new ApiRequestError(0, "NETWORK", "Can't reach Editly. Check your connection and try again.");
+    throw new ApiRequestError(0, "NETWORK", "Can't reach Inklyne. Check your connection and try again.");
   }
   if (response.status === 204) return undefined as T;
   const body = await response.json().catch(() => null);

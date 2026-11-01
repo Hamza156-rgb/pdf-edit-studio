@@ -1,0 +1,37 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1024 1024">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#1d3170"/><stop offset=".55" stop-color="#121d47"/><stop offset="1" stop-color="#0a1129"/>
+    </linearGradient>
+    <radialGradient id="glow" cx=".26" cy=".18" r=".8">
+      <stop offset="0" stop-color="#5a85ff" stop-opacity=".55"/><stop offset="1" stop-color="#5a85ff" stop-opacity="0"/>
+    </radialGradient>
+    <linearGradient id="page" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0" stop-color="#ffffff"/><stop offset="1" stop-color="#dfe7f7"/>
+    </linearGradient>
+    <linearGradient id="ink" gradientUnits="userSpaceOnUse" x1="300" y1="0" x2="860" y2="0">
+      <stop offset="0" stop-color="#3b6cf0"/><stop offset=".6" stop-color="#6a5cff"/><stop offset="1" stop-color="#a77bff"/>
+    </linearGradient>
+    <filter id="lift" x="-30%" y="-30%" width="160%" height="170%">
+      <feDropShadow dx="10" dy="30" stdDeviation="28" flood-color="#02040d" flood-opacity=".6"/>
+    </filter>
+    <filter id="inkglow" x="-20%" y="-60%" width="140%" height="220%">
+      <feDropShadow dx="0" dy="8" stdDeviation="10" flood-color="#6a5cff" flood-opacity=".55"/>
+    </filter>
+  </defs>
+  <rect width="1024" height="1024" rx="230" fill="url(#bg)"/>
+  <rect width="1024" height="1024" rx="230" fill="url(#glow)"/>
+  <!-- tilted page with folded corner -->
+  <g transform="rotate(-7 500 500)" filter="url(#lift)">
+    <path d="M300 200h290l130 130v420a46 46 0 0 1-46 46H300a46 46 0 0 1-46-46V246a46 46 0 0 1 46-46z" fill="url(#page)"/>
+    <path d="M590 200v96a34 34 0 0 0 34 34h96z" fill="#bccbec"/>
+    <rect x="320" y="340" width="200" height="32" rx="16" fill="#b6c5e6"/>
+    <rect x="320" y="408" width="290" height="32" rx="16" fill="#d0dbf0"/>
+  </g>
+  <!-- the ink line: written on the page, running past its edge, ending in an ink drop -->
+  <g filter="url(#inkglow)">
+    <path d="M318 642c34-78 76-110 104-86s-10 104 22 106 56-96 92-94 12 90 50 88 70-64 130-64 92 30 116 30" fill="none" stroke="url(#ink)" stroke-width="34" stroke-linecap="round" stroke-linejoin="round"/>
+    <circle cx="836" cy="622" r="34" fill="#a77bff"/>
+    <circle cx="826" cy="611" r="9" fill="#ffffff" fill-opacity=".55"/>
+  </g>
+</svg>
