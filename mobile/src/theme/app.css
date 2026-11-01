@@ -71,10 +71,22 @@
 @media (min-width: 380px) { .app-content { padding-inline: 1.25rem; } }
 @media (min-width: 768px) { .app-content { padding-inline: 2rem; } }
 
-/* Onboarding/auth on small or short screens: shrink the 3D scenes to the space available. */
-@media (max-height: 720px) { .app-onboarding-scene .depth-stage { scale: .82; } }
-@media (max-height: 620px) { .app-onboarding-scene .depth-stage { scale: .64; } }
-@media (max-width: 340px) { .app-onboarding-scene .depth-stage { scale: .62; } }
+/* Onboarding: scale each 3D scene to the height its slide actually leaves for it
+   (the last slide has three buttons, so its scene gets less room). */
+.app-onboarding-scene { container-type: size; }
+@container (max-height: 470px) { .depth-stage { scale: .86; } }
+@container (max-height: 410px) { .depth-stage { scale: .74; } }
+@container (max-height: 350px) { .depth-stage { scale: .62; } }
+@container (max-height: 300px) { .depth-stage { scale: .52; } }
+@container (max-height: 250px) { .depth-stage { scale: .43; } }
+@container (max-height: 200px) { .depth-stage { scale: .34; } }
+@container (max-height: 150px) { .depth-stage { display: none; } }
+@media (max-width: 340px) { .app-onboarding-scene .depth-stage { scale: .52; } }
+/* Short screens: tighter intro copy so the scene keeps some room. */
+@media (max-height: 760px) {
+  .app-onboarding-slide h1 { font-size: 1.8rem; }
+  .app-onboarding-slide h1 + p { font-size: 14px; line-height: 1.4rem; }
+}
 @media (orientation: landscape) and (max-height: 520px) {
   .app-onboarding-slide { flex-direction: row; align-items: center; gap: 2rem; }
   .app-onboarding-slide > .app-onboarding-scene { flex: 1 1 50%; align-self: stretch; }
@@ -103,7 +115,7 @@ ion-content.app-admin-content { --background: #f7f9fc; }
 
 /* Header: transparent at the top, frosted once content scrolls under it. */
 .app-header { background: #f5f7fb; border-bottom: 1px solid transparent; }
-.app-header-scrolled { background: rgba(255,255,255,.86); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom-color: rgba(226,232,240,.85); box-shadow: 0 8px 24px -18px rgba(15,23,42,.45); }
+.app-header-scrolled { background: rgba(255,255,255,.97); backdrop-filter: blur(20px); -webkit-backdrop-filter: blur(20px); border-bottom-color: rgba(226,232,240,.85); box-shadow: 0 8px 24px -18px rgba(15,23,42,.45); }
 
 /* Docked tab bar: five equal slots with the raised + in the middle. */
 ion-tab-bar.app-tabbar {
@@ -123,6 +135,16 @@ ion-tab-button.app-tab-button ion-label { margin-top: 2px; font-size: 10.5px; fo
 .app-tab-pill { display: grid; place-items: center; height: 32px; width: 48px; border-radius: 999px; transition: background-color .2s, transform .2s; }
 ion-tab-button.tab-selected .app-tab-pill { background: #eaf2ff; }
 .app-tab-fab { position: absolute; left: 50%; bottom: calc(var(--app-safe-bottom) + 9px); z-index: 20; display: flex; flex-direction: column; align-items: center; transform: translateX(-50%); }
+
+/* Speed on mid-range Android: live backdrop blurs are the most expensive thing a WebView paints
+   (every frame, behind every frosted bar), so the app uses near-opaque fills instead. Tilt cards
+   only become GPU layers while they're pressed instead of all the time. */
+.app-shell *, .app-shell *::before, .app-shell *::after { -webkit-backdrop-filter: none !important; backdrop-filter: none !important; }
+.app-shell .depth-tilt { will-change: auto; }
+.app-shell .depth-tilt[data-active] { will-change: transform; }
+/* The 3D document's signature draws once instead of repainting forever. */
+@media (prefers-reduced-motion: no-preference) { .app-shell .depth-signature { animation: app-sign-once 1.6s cubic-bezier(.65,0,.35,1) .3s both; } }
+@keyframes app-sign-once { from { stroke-dashoffset: 220; } to { stroke-dashoffset: 0; } }
 
 /* Ignore the phone's font-size setting inside the app so PDF text keeps its real size. */
 html { -webkit-text-size-adjust: 100%; text-size-adjust: 100%; }

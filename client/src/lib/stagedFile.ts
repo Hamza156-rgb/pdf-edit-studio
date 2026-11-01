@@ -20,3 +20,14 @@ export function consumeStagedEditorSession() {
   stagedSession = null;
   return session;
 }
+
+/** Reads the staged file and session without clearing them, for use during render. */
+export function peekStagedEditorInput() {
+  return { file: stagedFile, session: stagedSession };
+}
+
+/** Clears what the editor picked up; call from an effect, once the editor has actually mounted. */
+export function clearStagedEditorInput() {
+  stagedFile = null;
+  stagedSession = null;
+}

@@ -33,10 +33,10 @@ export default function Onboarding() {
     <IonPage><IonContent className="app-dark-content" scrollY={false}>
     <div className="app-screen relative flex h-full flex-col overflow-hidden bg-[#0f172a] text-white">
       <div className="depth-grid depth-grid-dark" />
-      <div className="pointer-events-none absolute -left-32 top-24 h-[380px] w-[380px] rounded-full bg-[#326ad8]/35 blur-[100px]" />
-      <div className="pointer-events-none absolute -right-32 bottom-40 h-[320px] w-[320px] rounded-full bg-[#6b5ce7]/25 blur-[100px]" />
+      <div className="pointer-events-none absolute -left-52 top-4 h-[620px] w-[620px] rounded-full bg-[radial-gradient(closest-side,rgba(50,106,216,.32),transparent)]" />
+      <div className="pointer-events-none absolute -right-48 bottom-20 h-[540px] w-[540px] rounded-full bg-[radial-gradient(closest-side,rgba(107,92,231,.24),transparent)]" />
 
-      <header className="app-safe-top relative z-10 flex items-center justify-between px-5 pt-3">
+      <header className="app-safe-top relative z-20 flex items-center justify-between px-5 pt-3">
         <span className="flex items-center gap-2 text-sm font-semibold"><BrandMark size="sm" />Inklyne</span>
         {!last && <button type="button" onClick={() => void finish("/tabs/home")} className="rounded-full px-3 py-2 text-sm font-medium text-white/70 active:bg-white/10">Skip</button>}
       </header>

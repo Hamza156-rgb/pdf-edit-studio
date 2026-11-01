@@ -1,4 +1,4 @@
-import { exportEditedPdf, getPdfPage, renderPdfPage, triggerPdfDownload, validatePdfFile } from "@/lib/pdf";
+import { validatePdfFile } from "@/lib/pdfValidation";
 import { platform } from "@/lib/platform";
 import { deleteLibraryDocument, LibraryDocumentSummary, listLibraryDocuments, loadLibraryDocument, renameLibraryDocument } from "@/lib/session";
 import { stageEditorSession, stagePdfFile } from "@/lib/stagedFile";
@@ -56,7 +56,8 @@ export function DocThumb({ document, className = "" }: { document: LibraryDocume
     if (!canvas || rendered.current === key) return;
     if (!page || !source || page.sourceIndex === undefined) { setFailed(true); return; }
     rendered.current = key;
-    void getPdfPage(source, page.sourceIndex).then(pdfPage => renderPdfPage(pdfPage, canvas, page.rotation, .3)).catch(() => setFailed(true));
+    // The PDF engine is loaded on demand so it stays out of the startup bundle.
+    void import("@/lib/pdf").then(async ({ getPdfPage, renderPdfPage }) => renderPdfPage(await getPdfPage(source, page.sourceIndex!), canvas, page.rotation, .3)).catch(() => setFailed(true));
   }, [document]);
   return (
     <span className={`relative block overflow-hidden rounded-lg bg-white shadow-[0_0_0_1px_rgba(23,32,51,.08),0_10px_18px_-10px_rgba(23,32,51,.45)] ${className}`}>
@@ -83,6 +84,7 @@ export function useDocumentActions(refresh: () => Promise<void>) {
     try {
       const document = await loadLibraryDocument(id);
       if (!document) throw new Error("missing");
+      const { exportEditedPdf, triggerPdfDownload } = await import("@/lib/pdf");
       const bytes = await exportEditedPdf(document);
       const name = `${document.fileName || "document"}.pdf`;
       if (platform.savePdf) await platform.savePdf(bytes, name); else triggerPdfDownload(bytes, name);

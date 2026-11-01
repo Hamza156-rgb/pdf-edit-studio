@@ -46,7 +46,7 @@ export default function AuthScreen({ mode }: { mode: Mode }) {
     <IonPage><IonContent className="app-dark-content">
     <div className="app-screen relative flex min-h-full flex-col overflow-hidden bg-[#0f172a]">
       <div className="depth-grid depth-grid-dark" />
-      <div className="pointer-events-none absolute -right-24 top-10 h-72 w-72 rounded-full bg-[#326ad8]/40 blur-[90px]" />
+      <div className="pointer-events-none absolute -right-44 -top-10 h-[480px] w-[480px] rounded-full bg-[radial-gradient(closest-side,rgba(50,106,216,.38),transparent)]" />
       <header className="app-safe-top relative z-10 flex items-center px-3 pt-2">
         <button type="button" onClick={() => router.canGoBack() ? router.goBack() : router.navigateRoot("/welcome")} aria-label="Back" className="grid h-11 w-11 place-items-center rounded-full text-white active:bg-white/10"><ChevronLeft className="h-6 w-6" /></button>
       </header>

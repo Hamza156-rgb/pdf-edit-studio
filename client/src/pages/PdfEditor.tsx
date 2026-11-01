@@ -9,7 +9,7 @@ import { removeWatermarks } from "@/lib/watermark";
 import { platform } from "@/lib/platform";
 import { DashboardDensity, loadDashboardDensity, saveDashboardDensity, toggleDashboardDensity } from "@/lib/dashboardDensity";
 import { clearEditorSession, loadEditorSession, saveEditorSession, saveLibraryDocument } from "@/lib/session";
-import { consumeStagedEditorSession, consumeStagedPdfFile } from "@/lib/stagedFile";
+import { clearStagedEditorInput, peekStagedEditorInput } from "@/lib/stagedFile";
 import { DndContext, DragEndEvent, PointerSensor, useSensor, useSensors } from "@dnd-kit/core";
 import { arrayMove, SortableContext, useSortable, verticalListSortingStrategy } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
@@ -53,8 +53,12 @@ export default function PdfEditor() {
   const [, setLocation] = useLocation();
   const { user } = useAuth();
   const recordAccountDocument = useRecordAccountDocument();
-  const pendingFile = useMemo(() => consumeStagedPdfFile(), []);
-  const pendingSession = useMemo(() => consumeStagedEditorSession(), []);
+  // Read during render but cleared only after mount: React can discard a first render (e.g. while
+  // the app lazy-loads this page), and that render must not use up the file.
+  const staged = useMemo(() => peekStagedEditorInput(), []);
+  const pendingFile = staged.file;
+  const pendingSession = staged.session;
+  useEffect(() => clearStagedEditorInput(), []);
   const [sources, setSources] = useState<SourceDocument[]>([]);
   const [pages, setPages] = useState<EditorPage[]>([]);
   const [annotations, setAnnotations] = useState<Annotation[]>([]);

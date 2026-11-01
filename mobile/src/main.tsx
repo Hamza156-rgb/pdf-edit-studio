@@ -9,6 +9,7 @@ import App from "./App";
 import { ME_QUERY_KEY, refreshSessionIfStale } from "./lib/auth";
 import { isNative, loadStoredToken, nativePlatform } from "./lib/native";
 import "./theme/app.css";
+import { loadPdfEditor } from "./pages/Editor";
 
 setupIonicReact();
 // The shared editor calls these hooks instead of importing Capacitor directly.
@@ -33,6 +34,8 @@ async function bootstrap() {
       </TooltipProvider>
     </QueryClientProvider>
   );
+  // Fetch and parse the editor once the first screen is up, so opening a PDF never waits on it.
+  setTimeout(() => void loadPdfEditor(), 1200);
 }
 
 void bootstrap();
