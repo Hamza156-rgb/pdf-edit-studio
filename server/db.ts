@@ -193,14 +193,25 @@ export async function listAdminUsers() {
   }).from(users).orderBy(desc(users.createdAt)).limit(100);
 }
 
+export async function getUserById(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database unavailable");
+  const result = await db.select().from(users).where(eq(users.id, userId)).limit(1);
+  return result[0];
+}
+
+/** Returns false when no user has that id. */
 export async function setUserAccountStatus(userId: number, accountStatus: "active" | "disabled") {
   const db = await getDb();
   if (!db) throw new Error("Database unavailable");
-  await db.update(users).set({ accountStatus }).where(eq(users.id, userId));
+  const [result] = await db.update(users).set({ accountStatus }).where(eq(users.id, userId));
+  return result.affectedRows > 0;
 }
 
+/** Returns false when no user has that id. */
 export async function deleteUserAccount(userId: number) {
   const db = await getDb();
   if (!db) throw new Error("Database unavailable");
-  await db.delete(users).where(eq(users.id, userId));
+  const [result] = await db.delete(users).where(eq(users.id, userId));
+  return result.affectedRows > 0;
 }

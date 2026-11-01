@@ -1,7 +1,7 @@
 import express, { type NextFunction, type Request, type Response } from "express";
 import { z, ZodError } from "zod";
 import type { Document, User } from "../../drizzle/schema";
-import { countDocumentsByOwner, createDocument, createNativeUser, getDocumentByOwner, getNativeUserByEmail, getUserByOpenId, listDocumentsByOwner, renameDocument, deleteDocument } from "../db";
+import { countDocumentsByOwner, createDocument, createNativeUser, deleteDocument, deleteUserAccount, getAdminOverview, getDocumentByOwner, getNativeUserByEmail, getUserById, getUserByOpenId, listAdminUsers, listDocumentsByOwner, renameDocument, setUserAccountStatus } from "../db";
 import { hashPassword, verifyPassword } from "../nativeAuth";
 import { sdk } from "../_core/sdk";
 import { openApiDocument } from "./openapi";
@@ -42,6 +42,7 @@ const documentBody = z.object({
 });
 const renameBody = z.object({ name: z.string().trim().min(1).max(255) });
 const idParam = z.coerce.number().int().positive();
+const accountStatusBody = z.object({ accountStatus: z.enum(["active", "disabled"]) });
 const pageQuery = z.object({
   limit: z.coerce.number().int().min(1).max(100).default(50),
   offset: z.coerce.number().int().min(0).default(0),
@@ -201,6 +202,35 @@ export function createMobileApiRouter(options: { allowedOrigins?: string[]; auth
 
   api.delete("/documents/:id", requireAuth, handle(async (req, res) => {
     if (!(await deleteDocument((req as AuthedRequest).user.id, idParam.parse(req.params.id)))) throw new ApiError(404, "NOT_FOUND", "Document not found.");
+    res.status(204).end();
+  }));
+
+  // ---- Admin (role = admin only) --------------------------------------------
+  const requireAdmin = (req: Request, _res: Response, next: NextFunction) => {
+    if ((req as AuthedRequest).user.role !== "admin") return next(new ApiError(403, "FORBIDDEN", "Administrator access required."));
+    next();
+  };
+
+  api.get("/admin/overview", requireAuth, requireAdmin, handle(async (_req, res) => { res.json({ data: await getAdminOverview() }); }));
+
+  api.get("/admin/users", requireAuth, requireAdmin, handle(async (_req, res) => {
+    const accounts = await listAdminUsers();
+    res.json({ data: accounts.map(account => ({ ...account, createdAt: account.createdAt.toISOString(), lastSignedIn: account.lastSignedIn.toISOString() })) });
+  }));
+
+  api.patch("/admin/users/:id", requireAuth, requireAdmin, handle(async (req, res) => {
+    const id = idParam.parse(req.params.id);
+    const { accountStatus } = accountStatusBody.parse(req.body);
+    if (id === (req as AuthedRequest).user.id && accountStatus === "disabled") throw new ApiError(400, "VALIDATION_ERROR", "Administrators cannot disable their own account.");
+    if (!(await setUserAccountStatus(id, accountStatus)) && !(await getUserById(id))) throw new ApiError(404, "NOT_FOUND", "User not found.");
+    const updated = await getUserById(id);
+    res.json({ data: { id, accountStatus: updated?.accountStatus ?? accountStatus } });
+  }));
+
+  api.delete("/admin/users/:id", requireAuth, requireAdmin, handle(async (req, res) => {
+    const id = idParam.parse(req.params.id);
+    if (id === (req as AuthedRequest).user.id) throw new ApiError(400, "VALIDATION_ERROR", "Administrators cannot delete their own account.");
+    if (!(await deleteUserAccount(id))) throw new ApiError(404, "NOT_FOUND", "User not found.");
     res.status(204).end();
   }));
 

@@ -41,6 +41,11 @@ vi.mock("../db", () => ({
     return true;
   },
   upsertUser: async () => undefined,
+  getUserById: async (id: number) => store.users.find(user => user.id === id),
+  getAdminOverview: async () => ({ totalUsers: store.users.length, activeUsers: store.users.filter(user => user.accountStatus === "active").length, totalDocuments: store.documents.length, managedBytes: store.documents.reduce((sum, doc) => sum + doc.byteSize, 0) }),
+  listAdminUsers: async () => store.users.map(({ id, name, email, role, accountStatus, createdAt, lastSignedIn }) => ({ id, name, email, role, accountStatus, createdAt, lastSignedIn })),
+  setUserAccountStatus: async (id: number, accountStatus: "active" | "disabled") => { const user = store.users.find(item => item.id === id); if (!user) return false; user.accountStatus = accountStatus; return true; },
+  deleteUserAccount: async (id: number) => { const index = store.users.findIndex(item => item.id === id); if (index === -1) return false; store.users.splice(index, 1); return true; },
 }));
 
 const { createMobileApiRouter } = await import("./v1");
@@ -163,6 +168,45 @@ describe("mobile API: documents", () => {
     const token = await signup("invalid-docs@example.com");
     expect((await call("POST", "/api/v1/documents", { token, body: { name: " ", originalFileName: "x.pdf", pageCount: 0, byteSize: 1 } })).status).toBe(400);
     expect((await call("GET", "/api/v1/documents/abc", { token })).status).toBe(400);
+  });
+});
+
+describe("mobile API: admin", () => {
+  it("is limited to administrators", async () => {
+    const token = await signup("plain-user@example.com");
+    for (const [method, path] of [["GET", "/api/v1/admin/overview"], ["GET", "/api/v1/admin/users"], ["DELETE", "/api/v1/admin/users/1"]] as const) {
+      const result = await call(method, path, { token });
+      expect(result.status).toBe(403);
+      expect(result.json.error.code).toBe("FORBIDDEN");
+    }
+    expect((await call("GET", "/api/v1/admin/overview")).status).toBe(401);
+  });
+
+  it("lets admins read totals, list users, change status, and delete accounts", async () => {
+    const adminToken = await signup("admin@example.com");
+    const admin = store.users.find(user => user.email === "admin@example.com")!;
+    admin.role = "admin";
+    await signup("target@example.com");
+    const target = store.users.find(user => user.email === "target@example.com")!;
+
+    const overview = await call("GET", "/api/v1/admin/overview", { token: adminToken });
+    expect(overview.status).toBe(200);
+    expect(overview.json.data.totalUsers).toBe(store.users.length);
+
+    const users = await call("GET", "/api/v1/admin/users", { token: adminToken });
+    expect(users.json.data.find((user: { email: string }) => user.email === "target@example.com")).toMatchObject({ accountStatus: "active", role: "user" });
+    expect(users.json.data[0]).not.toHaveProperty("passwordHash");
+
+    const disabled = await call("PATCH", `/api/v1/admin/users/${target.id}`, { token: adminToken, body: { accountStatus: "disabled" } });
+    expect(disabled.json.data).toEqual({ id: target.id, accountStatus: "disabled" });
+    expect((await call("PATCH", `/api/v1/admin/users/${target.id}`, { token: adminToken, body: { accountStatus: "paused" } })).status).toBe(400);
+
+    expect((await call("PATCH", `/api/v1/admin/users/${admin.id}`, { token: adminToken, body: { accountStatus: "disabled" } })).status).toBe(400);
+    expect((await call("DELETE", `/api/v1/admin/users/${admin.id}`, { token: adminToken })).status).toBe(400);
+
+    expect((await call("DELETE", `/api/v1/admin/users/${target.id}`, { token: adminToken })).status).toBe(204);
+    expect((await call("DELETE", `/api/v1/admin/users/${target.id}`, { token: adminToken })).status).toBe(404);
+    expect((await call("PATCH", "/api/v1/admin/users/99999", { token: adminToken, body: { accountStatus: "active" } })).status).toBe(404);
   });
 });
 

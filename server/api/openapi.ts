@@ -47,6 +47,8 @@ export const openApiDocument = {
         type: "object", required: ["name", "originalFileName", "pageCount", "byteSize"],
         properties: { name: { type: "string", minLength: 1, maxLength: 255 }, originalFileName: { type: "string", minLength: 1, maxLength: 255 }, pageCount: { type: "integer", minimum: 1, maximum: 5000 }, byteSize: { type: "integer", minimum: 1 } },
       },
+      AdminOverview: { type: "object", properties: { totalUsers: { type: "integer" }, activeUsers: { type: "integer" }, totalDocuments: { type: "integer" }, managedBytes: { type: "integer" } } },
+      AdminUser: { type: "object", properties: { id: { type: "integer" }, name: { type: ["string", "null"] }, email: { type: ["string", "null"] }, role: { type: "string", enum: ["user", "admin"] }, accountStatus: { type: "string", enum: ["active", "disabled"] }, createdAt: { type: "string", format: "date-time" }, lastSignedIn: { type: "string", format: "date-time" } } },
       RenameDocumentRequest: { type: "object", required: ["name"], properties: { name: { type: "string", minLength: 1, maxLength: 255 } } },
     },
   },
@@ -71,6 +73,13 @@ export const openApiDocument = {
       get: { summary: "Get one document", security: secured, responses: { 200: json({ type: "object", properties: { data: { $ref: "#/components/schemas/Document" } } }), 401: error("Missing or expired token"), 404: error("Not found or not yours") } },
       patch: { summary: "Rename a document", security: secured, requestBody: body("RenameDocumentRequest"), responses: { 200: json({ type: "object", properties: { data: { $ref: "#/components/schemas/Document" } } }), 400: error("Invalid input"), 401: error("Missing or expired token"), 404: error("Not found or not yours") } },
       delete: { summary: "Delete a document", security: secured, responses: { 204: { description: "Deleted" }, 401: error("Missing or expired token"), 404: error("Not found or not yours") } },
+    },
+    "/admin/overview": { get: { summary: "Platform totals (admins only)", security: secured, responses: { 200: json({ type: "object", properties: { data: { $ref: "#/components/schemas/AdminOverview" } } }), 401: error("Missing or expired token"), 403: error("Not an administrator") } } },
+    "/admin/users": { get: { summary: "Most recent accounts (admins only)", security: secured, responses: { 200: json({ type: "object", properties: { data: { type: "array", items: { $ref: "#/components/schemas/AdminUser" } } } }), 401: error("Missing or expired token"), 403: error("Not an administrator") } } },
+    "/admin/users/{id}": {
+      parameters: [idParameter],
+      patch: { summary: "Enable or disable an account (admins only)", security: secured, requestBody: { required: true, content: { "application/json": { schema: { type: "object", required: ["accountStatus"], properties: { accountStatus: { type: "string", enum: ["active", "disabled"] } } } } } }, responses: { 200: json({ type: "object" }), 400: error("Invalid input or own account"), 403: error("Not an administrator"), 404: error("User not found") } },
+      delete: { summary: "Delete an account (admins only)", security: secured, responses: { 204: { description: "Deleted" }, 400: error("Own account"), 403: error("Not an administrator"), 404: error("User not found") } },
     },
   },
 } as const;

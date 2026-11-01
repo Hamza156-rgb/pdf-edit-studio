@@ -1,4 +1,4 @@
-import { useAuth } from "@/_core/hooks/useAuth";
+import { useAuth } from "../lib/auth";
 import { BrandMark } from "@/components/Depth";
 import { IonContent, IonHeader, IonPage, IonRefresher, IonRefresherContent, RefresherEventDetail, useIonRouter, useIonViewWillEnter } from "@ionic/react";
 import { UserRound } from "lucide-react";

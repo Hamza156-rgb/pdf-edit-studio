@@ -1,4 +1,4 @@
-import { useAuth } from "@/_core/hooks/useAuth";
+import { useAuth } from "../lib/auth";
 import { DocumentStack, TiltCard } from "@/components/Depth";
 import { useIonRouter } from "@ionic/react";
 import { ChevronRight, CloudOff, FileText, Highlighter, LayoutGrid, Loader2, ShieldAlert, Signature, Sparkles, Stamp, TextCursorInput } from "lucide-react";

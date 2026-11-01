@@ -1,7 +1,8 @@
 import { DocumentStack } from "@/components/Depth";
 import { IonContent, IonPage, useIonRouter, useIonViewWillEnter } from "@ionic/react";
-import { ApiRequestError, ApiSession, haptic, restApi, setStatusBar, storeToken } from "../lib/native";
-import { trpc } from "@/lib/trpc";
+import { ApiRequestError, ApiSession, haptic, restApi, setStatusBar } from "../lib/native";
+import { useQueryClient } from "@tanstack/react-query";
+import { ME_QUERY_KEY, startSession } from "../lib/auth";
 import { ChevronLeft, Eye, EyeOff, Loader2, LockKeyhole, Mail, UserRound } from "lucide-react";
 import { FormEvent, ReactNode, useEffect, useState } from "react";
 
@@ -10,7 +11,7 @@ type Mode = "signin" | "signup";
 export default function AuthScreen({ mode }: { mode: Mode }) {
   const router = useIonRouter();
   const onDone = () => router.navigateRoot("/tabs/home");
-  const utils = trpc.useUtils();
+  const queryClient = useQueryClient();
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,8 +29,8 @@ export default function AuthScreen({ mode }: { mode: Mode }) {
     setPending(true); setError(null); setFieldErrors({});
     try {
       const session = await restApi<ApiSession>(signup ? "/auth/signup" : "/auth/login", { method: "POST", body: JSON.stringify(signup ? { name, email, password } : { email, password }) });
-      await storeToken(session.token);
-      await utils.auth.me.invalidate();
+      await startSession(session);
+      queryClient.setQueryData(ME_QUERY_KEY, session.user);
       haptic("success");
       onDone();
     } catch (caught) {

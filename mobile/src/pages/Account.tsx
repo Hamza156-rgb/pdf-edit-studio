@@ -1,19 +1,21 @@
 import { App as CapacitorApp } from "@capacitor/app";
-import { useAuth } from "@/_core/hooks/useAuth";
 import { BrandMark, TiltCard } from "@/components/Depth";
-import { trpc } from "@/lib/trpc";
+import { useQuery } from "@tanstack/react-query";
 import { useIonRouter, useIonViewWillEnter } from "@ionic/react";
 import { ChevronRight, FileText, Info, Loader2, LogIn, LogOut, RotateCcw, ShieldCheck } from "lucide-react";
 import { useEffect, useState } from "react";
 import { toast } from "sonner";
 import { TabPage } from "../components/TabPage";
+import { DOCUMENTS_QUERY_KEY, useAuth } from "../lib/auth";
 import { formatBytes, useLibrary } from "../lib/documents";
-import { haptic, isNative, setFlag } from "../lib/native";
+import { haptic, isNative, restApi, setFlag } from "../lib/native";
+
+type AccountDocument = { id: number; name: string; pageCount: number; byteSize: number; updatedAt: string };
 
 export default function Account() {
   const router = useIonRouter();
   const { user, loading, logout, refresh: refreshUser } = useAuth();
-  const activity = trpc.documents.list.useQuery(undefined, { enabled: Boolean(user) });
+  const activity = useQuery({ queryKey: DOCUMENTS_QUERY_KEY, queryFn: async () => (await restApi<{ data: AccountDocument[] }>("/documents?limit=100")).data, enabled: Boolean(user) });
   useIonViewWillEnter(() => { if (user) void activity.refetch(); });
   const { documents } = useLibrary();
   const [version, setVersion] = useState("Web preview");

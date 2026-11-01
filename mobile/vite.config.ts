@@ -14,13 +14,17 @@ export default defineConfig(({ mode }) => {
     plugins: [react(), tailwindcss()],
     resolve: {
       // Reuse the website's editor, UI kit, and API client from ../client.
-      alias: {
-        "@": clientSrc,
-        "@shared": path.resolve(import.meta.dirname, "../shared"),
-      },
+      alias: [
+        // The app uses REST everywhere: these shared modules talk to tRPC on the website, so the
+        // mobile build swaps in REST versions with the same exports.
+        { find: /^@\/_core\/hooks\/useAuth$/, replacement: path.resolve(import.meta.dirname, "src/lib/auth.ts") },
+        { find: /^@\/lib\/accountDocuments$/, replacement: path.resolve(import.meta.dirname, "src/lib/accountDocuments.ts") },
+        { find: "@", replacement: clientSrc },
+        { find: "@shared", replacement: path.resolve(import.meta.dirname, "../shared") },
+      ],
       // Shared code lives outside this package; make every import resolve to one copy of these
       // libraries so React context (React Query, tRPC, router) works across both trees.
-      dedupe: ["react", "react-dom", "@tanstack/react-query", "@trpc/client", "@trpc/react-query", "wouter", "sonner", "superjson"],
+      dedupe: ["react", "react-dom", "@tanstack/react-query", "wouter", "sonner"],
     },
     server: {
       port: 5180, // 5173 is often taken by other Vite projects on the same machine

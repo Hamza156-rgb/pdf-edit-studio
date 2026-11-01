@@ -19,15 +19,28 @@ mobile/
 └── vite.config.ts          aliases `@` → ../client/src, proxies /api in dev
 ```
 
+## API: REST only
+
+The app talks to the server **only through the REST API** (`/api/v1`, documented in `../docs/mobile-api.md`) with a
+bearer token stored by `@capacitor/preferences`. It does not use tRPC or cookies.
+
+| Feature | Endpoint |
+| --- | --- |
+| Sign up / log in / log out | `POST /auth/signup`, `/auth/login`, `/auth/logout` |
+| Stay signed in | `POST /auth/refresh` at launch and on resume when the token is older than 12 h |
+| Current user | `GET /me` |
+| Save to account, account activity | `POST /documents`, `GET /documents` |
+| Admin console | `GET /admin/overview`, `GET /admin/users`, `PATCH`/`DELETE /admin/users/:id` |
+
 ## How it shares code with the website
 
 - `@/…` imports resolve to `../client/src`, so the app uses the **same editor** (`@/pages/PdfEditor`) and libraries.
+- The website's tRPC-based modules are swapped for REST versions in the mobile build (aliases in `vite.config.ts`
+  and `tsconfig.json`): `@/_core/hooks/useAuth` → `src/lib/auth.ts`, `@/lib/accountDocuments` → `src/lib/accountDocuments.ts`.
 - Shared code never imports Capacitor. It calls the small `platform` interface in `client/src/lib/platform.ts`;
   `src/main.tsx` plugs in the native implementation (`src/lib/native.ts`): share sheet for exports, haptics, status bar,
   token clean-up on sign-out.
 - The editor navigates with wouter (website router); `src/lib/wouterBridge.tsx` runs it on Ionic's router.
-- Auth uses bearer tokens from the REST API (`/api/v1/auth/*`, see `../docs/mobile-api.md`) stored with
-  `@capacitor/preferences`, never cookies.
 
 ## Run it
 

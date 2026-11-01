@@ -10,7 +10,8 @@ The machine-readable spec is served at `GET /api/v1/openapi.json` (OpenAPI 3.1) 
    { "token": "eyJ…", "tokenType": "Bearer", "expiresAt": "2026-11-18T10:00:00.000Z", "user": { "id": 1, "name": "Ayesha", "email": "ayesha@example.com", "role": "user", "createdAt": "…" } }
    ```
 2. Send it on every request: `Authorization: Bearer <token>`.
-3. Tokens last 30 days. Call `POST /auth/refresh` (with the current token) when the app opens to get a fresh one.
+3. Tokens last 30 days. Call `POST /auth/refresh` (with the current token) to get a fresh one; the Editly app does this
+   at launch and on resume whenever its token is older than 12 hours, so active users stay signed in.
 4. Logout = delete the stored token (`POST /auth/logout` is provided for symmetry and returns 204).
 
 Cookies are ignored by this API on purpose: only bearer tokens authenticate, so the endpoints can't be triggered cross-site.
@@ -32,6 +33,10 @@ A disabled account gets `403 FORBIDDEN` on login and on any existing token.
 | GET | `/documents/:id` | Bearer | One document |
 | PATCH | `/documents/:id` | Bearer | Rename `{ name }` |
 | DELETE | `/documents/:id` | Bearer | 204 |
+| GET | `/admin/overview` | Bearer (admin) | Totals: users, active users, document entries, metadata bytes |
+| GET | `/admin/users` | Bearer (admin) | Most recent 100 accounts (no password hashes) |
+| PATCH | `/admin/users/:id` | Bearer (admin) | `{ accountStatus: "active" \| "disabled" }`; can't disable yourself |
+| DELETE | `/admin/users/:id` | Bearer (admin) | 204; can't delete yourself |
 
 Documents are **metadata only** (same as the website): PDF bytes stay on the device. Another user's document always answers `404`.
 
