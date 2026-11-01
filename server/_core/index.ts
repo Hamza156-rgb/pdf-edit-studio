@@ -31,6 +31,9 @@ async function findAvailablePort(startPort: number = 3000): Promise<number> {
 
 async function startServer() {
   const app = express();
+  // Deployed behind a proxy (Manus/HTTPS gateway): use the real client IP for rate limiting and
+  // the forwarded protocol for secure cookies.
+  app.set("trust proxy", 1);
   const server = createServer(app);
   // Versioned REST API for the mobile apps (Bearer-token auth, JSON only). Mounted first so it
   // owns its body parsing and always answers with JSON errors.
